@@ -88,7 +88,7 @@ img { max-width: 100%; }
 header { display: flex; align-items: center; gap: 12px; }
 header svg { width: 52px; height: 52px; flex: none; }
 h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line-height: 1; margin: 0; letter-spacing: .01em; }
-.tagline { margin: 4px 0 0; color: var(--muted); font-size: .9rem; }
+.tagline { margin: 4px 0 0; color: var(--muted); font-size: .9rem; word-break: keep-all; text-wrap: balance; }
 
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); padding: 4px; border-radius: 999px; border: 1px solid var(--grid); }
@@ -99,7 +99,10 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .seg button:disabled { opacity: .45; cursor: default; }
 .seg.mode button { font-family: var(--font-display); font-size: 1rem; padding: 4px 16px; }
-.lockNote { font-size: .8rem; color: var(--muted); }
+/* The note's line is always reserved, so showing it after the first move doesn't push the board down. */
+.lockNote { font-size: .8rem; color: var(--muted); flex-basis: 100%; min-height: 1.4em; line-height: 1.4; }
+.lockNote.off { visibility: hidden; }
+html { scrollbar-gutter: stable; }
 
 .status { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .9rem; color: var(--muted); min-height: 34px; }
 .lives { display: flex; gap: 4px; }
@@ -242,13 +245,22 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .empty { color: var(--muted); font-size: .9rem; padding: 14px 0; text-align: center; }
 
 /* Leaderboard window */
-header .lbOpen { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; flex: none; }
-header .lbOpen svg { width: 18px; height: 18px; }
+.topRow { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.topRow .lbOpen { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.topRow .lbOpen svg { width: 18px; height: 18px; }
+/* Fixed-size window: switching difficulty only changes what scrolls inside the table area. */
 .panel {
   background: var(--surface); border: 1px solid var(--grid); border-radius: var(--radius);
-  width: min(100%, 480px); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain;
+  width: min(100%, 480px); height: min(720px, calc(100dvh - 32px)); overflow-y: auto; overscroll-behavior: contain;
   padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.25);
 }
+.panel > * { flex: none; }
+.panel > .lbTableWrap { flex: 1 1 0; min-height: 180px; overflow-y: auto; overscroll-behavior: contain; }
+.panel .lbt { table-layout: fixed; }
+.panel .lbt th:nth-child(1) { width: 3em; }
+.panel .lbt th:nth-child(3) { width: 3.6em; }
+.panel .lbt th:nth-child(4) { width: 5.4em; }
+.panel .lbt thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
 .panelHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .panel h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.45rem; margin: 0; }
 .panel .seg button { font-size: .82rem; padding: 4px 11px; }
@@ -317,19 +329,21 @@ header .lbOpen svg { width: 18px; height: 18px; }
       <h1>고슴도쿠</h1>
       <p class="tagline">가시가 따가워서 서로 붙기 싫은 고슴도치들의 자리 찾기 퍼즐</p>
     </div>
-    <button class="btn lbOpen" id="lbOpen" type="button" aria-haspopup="dialog">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M2 21h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="currentColor"/></svg>
-      리더보드
-    </button>
   </header>
 
   <div class="controls">
-    <div class="seg mode" id="modeSeg" role="group" aria-label="모드">
-      <button data-m="run" aria-pressed="true">도전</button>
-      <button data-m="practice" aria-pressed="false">연습</button>
+    <div class="topRow">
+      <div class="seg mode" id="modeSeg" role="group" aria-label="모드">
+        <button data-m="run" aria-pressed="true">도전</button>
+        <button data-m="practice" aria-pressed="false">연습</button>
+      </div>
+      <button class="btn lbOpen" id="lbOpen" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M2 21h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="currentColor"/></svg>
+        리더보드
+      </button>
     </div>
     <div class="seg" id="diffSeg" role="group" aria-label="난이도"></div>
-    <span class="lockNote" id="lockNote" hidden>첫 수를 둔 뒤에는 난이도를 바꿀 수 없어요</span>
+    <span class="lockNote off" id="lockNote">첫 수를 둔 뒤에는 난이도를 바꿀 수 없어요</span>
   </div>
 
   <div class="status">
@@ -730,11 +744,11 @@ header .lbOpen svg { width: 18px; height: 18px; }
       b.setAttribute('aria-pressed', String(b.dataset.d === S.diff));
       b.disabled = lockDiff && b.dataset.d !== S.diff;
     });
-    $('lockNote').hidden = !lockDiff;
+    $('lockNote').classList.toggle('off', !lockDiff);
     $('lbSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.d === S.lbDiff)));
 
     if (run) {
-      $('info').innerHTML = `레벨 ${S.run.level} <small>· 클리어 ${S.run.cleared}</small>`;
+      $('info').textContent = `레벨 ${S.run.level}`;
     } else {
       const done = (cleared[S.diff] || []).includes(S.practice.level);
       $('info').innerHTML = `<button id="prevLv" aria-label="이전 레벨" ${S.practice.level <= 1 ? 'disabled' : ''}>‹</button>
@@ -814,7 +828,7 @@ header .lbOpen svg { width: 18px; height: 18px; }
       <p>${d.label} ${d.n}×${d.n} 도전 결과</p>
       <p class="big">${r.cleared}레벨 클리어 · ${fmt(r.totalMs)}</p>
       <div class="row"><button class="btn primary" id="ovNew">새 도전</button><button class="btn" id="ovLb">리더보드</button>${failed ? '<button class="btn" id="ovPeek">정답 보기</button>' : ''}</div>`);
-    $('ovNew').onclick = () => { S.lastResult = null; newRun(S.diff); };
+    $('ovNew').onclick = () => { S.lastResult = null; pendingAnim = null; hold = null; newRun(S.diff); };
     $('ovLb').onclick = () => openLB();
     wirePeek();
     if (r.cleared > 0 && !r.submitted && !S.lastResult) trySubmit();
@@ -1216,7 +1230,17 @@ header .lbOpen svg { width: 18px; height: 18px; }
       })).json();
       await refreshLB(diff);
       if (res?.status === 'not_better') {
-        return { ok: true, done: true, status: 'not_better', msg: `개인 최고 기록(${res.levels}레벨 · ${fmt(res.time_ms)})은 넘지 못했어요.` };
+        // Rank this run on its own: records strictly better than it, plus one.
+        let runRank = 0;
+        try {
+          const t = Math.round(timeMs);
+          const ahead = await sb(`leaderboard?select=player_id&diff=eq.${diff}&or=(levels.gt.${levels},and(levels.eq.${levels},time_ms.lt.${t}))`,
+            { headers: { Prefer: 'count=exact', Range: '0-0' } });
+          const n = Number((ahead.headers.get('content-range') || '').split('/')[1]);
+          if (Number.isFinite(n)) runRank = n + 1;
+        } catch {}
+        return { ok: true, done: true, status: 'not_better', runRank,
+          msg: `개인 최고 기록(${res.levels}레벨 · ${fmt(res.time_ms)})을 넘지 못해서 리더보드는 그대로예요.` };
       }
       const rank = lbCache[diff]?.myRank;
       return { ok: true, done: true, status: 'new_best', msg: rank ? `리더보드에 등록했어요 · ${rank}위` : '리더보드에 등록했어요' };
@@ -1306,7 +1330,7 @@ header .lbOpen svg { width: 18px; height: 18px; }
     if (res.done) {
       r.submitted = true; saveRun();
       const after = entriesFor(r.diff);
-      if (before && after) pendingAnim = { diff: r.diff, before, after, status: res.status };
+      if (before && after) pendingAnim = { diff: r.diff, before, after, status: res.status, runRank: res.runRank };
     } else hold = null;
     renderResult();
     if (!pendingAnim) renderLB();
@@ -1349,10 +1373,16 @@ header .lbOpen svg { width: 18px; height: 18px; }
   function renderResult() {
     const box = $('lbResult');
     const r = S.run;
-    if (!(S.mode === 'run' && r?.finished)) { box.hidden = true; return; }
+    const finished = S.mode === 'run' && r?.finished;
+    // After a run that didn't beat the personal best nothing changes on the board, so just show the rankings.
+    $('nickForm').hidden = !!(finished && S.lastResult?.status === 'not_better');
+    if (!finished) { box.hidden = true; return; }
     const d = DIFFS.find(x => x.id === r.diff);
     box.hidden = false;
-    if (!box.querySelector('#saveArea')) {
+    // Rebuild for each finished run, so a previous run's rank headline never carries over.
+    const key = `${r.seed}:${r.diff}:${r.cleared}:${r.totalMs}`;
+    if (box.dataset.run !== key) {
+      box.dataset.run = key;
       box.innerHTML = `<div class="resHead"></div><div class="resStats"></div><div class="rankMove" id="rankMove" aria-live="polite"></div><div id="saveArea"></div>`;
     }
     box.querySelector('.resHead').textContent = `이번 도전 · ${d.label} ${d.n}×${d.n}`;
@@ -1462,7 +1492,7 @@ header .lbOpen svg { width: 18px; height: 18px; }
     playRankAnim(a);
   }
 
-  function playRankAnim({ before, after, status }) {
+  function playRankAnim({ before, after, status, runRank }) {
     const el = $('lbBody'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const oldRank = before.myRank, newRank = after.myRank;
     const mv = $('rankMove');
@@ -1472,8 +1502,10 @@ header .lbOpen svg { width: 18px; height: 18px; }
     if (mv) {
       mv.replaceChildren();
       if (status === 'not_better') {
-        mv.innerHTML = `<span class="to"></span><span class="tag">개인 최고 기록 유지</span>`;
-        mv.querySelector('.to').textContent = newRank ? `${newRank}위` : '';
+        // This run did not beat the personal best, so the board is unchanged: show where this run alone would rank.
+        mv.innerHTML = `<span class="to"></span><span class="tag"></span>`;
+        mv.querySelector('.to').textContent = runRank ? `이번 기록 ${runRank}위` : '';
+        mv.querySelector('.tag').textContent = newRank ? `내 최고 기록은 ${newRank}위 그대로예요` : '';
       } else if (!oldRank) {
         mv.innerHTML = `<span class="to"></span><span class="tag">${status === 'local' ? '이 기기 기록 순위' : '첫 등록'}</span>`;
         const to = mv.querySelector('.to');
