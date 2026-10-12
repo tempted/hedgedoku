@@ -85,6 +85,9 @@ img { max-width: 100%; }
 .nickRow input:focus-visible, .card input:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
 .card .nickForm { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .lbStatus { font-size: .8rem; color: var(--muted); margin: 0; }
+.panel .nickRow { animation: rowIn .3s ease-out; }
+@keyframes rowIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .panel .nickRow { animation: none; } }
 header { display: flex; align-items: center; gap: 12px; }
 header svg { width: 52px; height: 52px; flex: none; }
 h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line-height: 1; margin: 0; letter-spacing: .01em; }
@@ -99,6 +102,11 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .seg button:disabled { opacity: .45; cursor: default; }
 .seg.mode button { font-family: var(--font-display); font-size: 1rem; padding: 4px 16px; }
+/* Narrow screens: the four difficulties sit as a 2 × 2 grid instead of wrapping 3 + 1. */
+@media (max-width: 480px) {
+  #diffSeg { display: grid; grid-template-columns: 1fr 1fr; border-radius: 16px; flex-basis: 100%; }
+  #diffSeg button { border-radius: 12px; text-align: center; padding: 6px 8px; }
+}
 /* The note's line is always reserved, so showing it after the first move doesn't push the board down. */
 .lockNote { font-size: .8rem; color: var(--muted); flex-basis: 100%; min-height: 1.4em; line-height: 1.4; }
 .lockNote.off { visibility: hidden; }
@@ -1374,8 +1382,10 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const box = $('lbResult');
     const r = S.run;
     const finished = S.mode === 'run' && r?.finished;
-    // After a run that didn't beat the personal best nothing changes on the board, so just show the rankings.
-    $('nickForm').hidden = !!(finished && S.lastResult?.status === 'not_better');
+    // After a run, the nickname row stays hidden until the save result is known, and only appears when the
+    // run actually put a name on the board (new best / first entry) or the nickname needs fixing.
+    const res = S.lastResult;
+    $('nickForm').hidden = !!finished && !(res?.needNick || (res?.done && res.status !== 'not_better'));
     if (!finished) { box.hidden = true; return; }
     const d = DIFFS.find(x => x.id === r.diff);
     box.hidden = false;
@@ -1514,7 +1524,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
       } else {
         mv.innerHTML = `<span class="from"></span><span class="arrow">→</span><span class="to"></span><span class="tag"></span>`;
         mv.querySelector('.from').textContent = `${oldRank}위`;
-        mv.querySelector('.tag').textContent = newRank < oldRank ? `${oldRank - newRank}계단 올라갔어요` : newRank === oldRank ? '순위 유지 · 기록 단축' : '';
+        mv.querySelector('.tag').textContent = newRank < oldRank ? `${oldRank - newRank}계단 올라갔어요` : newRank === oldRank ? '순위 유지 · 최고 기록 갱신' : '';
         const to = mv.querySelector('.to');
         if (reduce) to.textContent = `${newRank}위`;
         else countTo(to, oldRank, newRank, MOVE + DELAY, v => `${v}위`);
