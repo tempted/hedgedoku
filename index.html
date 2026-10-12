@@ -101,6 +101,7 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line
 }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .seg button:disabled { opacity: .45; cursor: default; }
+.seg.mode { flex: none; flex-wrap: nowrap; }
 .seg.mode button { font-family: var(--font-display); font-size: 1rem; padding: 4px 16px; }
 /* Narrow screens: the four difficulties sit as a 2 × 2 grid instead of wrapping 3 + 1. */
 @media (max-width: 480px) {
@@ -256,6 +257,34 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .topRow { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .topRow .lbOpen { display: inline-flex; align-items: center; gap: 6px; flex: none; }
 .topRow .lbOpen svg { width: 18px; height: 18px; }
+.topActions { display: flex; gap: 6px; min-width: 0; }
+.profileBtn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 11em; }
+.profileBtn .pfEmoji { font-size: 1.15rem; line-height: 1; flex: none; }
+.profileBtn .pfEmoji.none { opacity: .35; filter: grayscale(1); }
+.profileBtn .pfName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 400px) { .profileBtn .pfName { display: none; } .profileBtn { padding-inline: 10px; } }
+@media (max-width: 360px) { .lbOpen .lbText { display: none; } .topRow .lbOpen { padding-inline: 10px; } }
+
+/* Profile window */
+.profileCard { width: min(100%, 360px); align-items: stretch; text-align: left; gap: 10px; }
+.profileCard h2 { text-align: center; }
+.pfPreview { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 2px; }
+.pfPreview #pfPrevEmoji { font-size: 2.6rem; line-height: 1.1; }
+.pfPreview #pfPrevName { font-family: var(--font-display); font-size: 1.1rem; min-height: 1.4em; color: var(--ink); overflow-wrap: anywhere; }
+.emojiGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.emojiGrid button {
+  aspect-ratio: 1; border-radius: 12px; border: 2px solid transparent; background: var(--bg);
+  font-size: 1.45rem; line-height: 1; cursor: pointer; padding: 0;
+}
+.emojiGrid button[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.emojiGrid button:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+.pfLabel { font-size: .88rem; color: var(--muted); }
+.pfLabel small { margin-left: 4px; }
+.profileCard input { width: 100%; }
+.pfMsg { margin: 0; min-height: 1.3em; font-size: .85rem; color: var(--danger); }
+.profileCard .row { justify-content: flex-end; }
+.who .av { flex: none; width: 1.4em; text-align: center; font-size: 1.15rem; line-height: 1; overflow: visible; }
+.who .av.none { opacity: .3; filter: grayscale(1); }
 /* Fixed-size window: switching difficulty only changes what scrolls inside the table area. */
 .panel {
   background: var(--surface); border: 1px solid var(--grid); border-radius: var(--radius);
@@ -299,6 +328,35 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .rules ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 4px; }
 .rules li::marker { color: var(--accent); font-family: var(--font-display); }
 .rules .note { margin: 10px 0 0; font-size: .82rem; color: var(--muted); }
+
+.tShort { display: none; }
+/* Small phones (e.g. iPhone SE): tighter spacing so the board and its buttons fit on one screen. */
+.boardwrap { width: 100%; margin-inline: auto; max-width: 100%; }
+@media (max-width: 480px) {
+  body { padding-block: calc(10px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .wrap { gap: 10px; }
+  header { gap: 10px; }
+  header svg { width: 40px; height: 40px; }
+  h1 { font-size: 1.7rem; }
+  .controls { gap: 6px; }
+  .lockNote { display: none; }
+  #diffSeg button { padding: 4px 8px; font-size: .82rem; }
+  .status { min-height: 28px; }
+  .lives svg { width: 20px; height: 20px; }
+  .actions { gap: 6px; }
+  .actions { flex-wrap: nowrap; gap: 4px; }
+  .actions .btn { padding: 6px 9px; font-size: .85rem; white-space: nowrap; }
+  .toggle { white-space: nowrap; }
+  .tLong { display: none; }
+  .tShort { display: inline; }
+  .toggle { font-size: .85rem; }
+}
+@media (max-width: 350px) {
+  .actions { flex-wrap: wrap; }
+}
+@media (max-width: 480px) and (max-height: 760px) {
+  .tagline { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .cell svg, .cell.ouch, .cell.hint::after, .cell.stab .mark, .cell.stab::before, .cell.puff svg { animation: none; }
@@ -345,10 +403,13 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
         <button data-m="run" aria-pressed="true">도전</button>
         <button data-m="practice" aria-pressed="false">연습</button>
       </div>
-      <button class="btn lbOpen" id="lbOpen" type="button" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M2 21h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="currentColor"/></svg>
-        리더보드
-      </button>
+      <div class="topActions">
+        <button class="btn profileBtn" id="profileOpen" type="button" aria-haspopup="dialog">
+          <span class="pfEmoji" id="pfBtnEmoji" aria-hidden="true">🦔</span><span class="pfName" id="pfBtnName">프로필 만들기</span>
+        </button>
+        <button class="btn lbOpen" id="lbOpen" type="button" aria-haspopup="dialog" aria-label="리더보드">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M2 21h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="currentColor"/></svg><span class="lbText">리더보드</span></button>
+      </div>
     </div>
     <div class="seg" id="diffSeg" role="group" aria-label="난이도"></div>
     <span class="lockNote off" id="lockNote">첫 수를 둔 뒤에는 난이도를 바꿀 수 없어요</span>
@@ -370,8 +431,8 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     <button class="btn" id="undoBtn">되돌리기</button>
     <button class="btn" id="hintBtn">힌트</button>
     <button class="btn" id="restartBtn">보드 비우기</button>
-    <button class="btn warn" id="quitBtn">도전 끝내기</button>
-    <label class="toggle"><input type="checkbox" id="autoX" checked> 자동 × 표시</label>
+    <button class="btn warn" id="quitBtn" aria-label="도전 끝내기"><span class="tLong">도전 끝내기</span><span class="tShort">끝내기</span></button>
+    <label class="toggle"><input type="checkbox" id="autoX" checked> <span class="tLong">자동 × 표시</span><span class="tShort">자동 ×</span></label>
   </div>
   <p class="howto">빈 칸을 누르면 ×, × 나 고슴도치를 누르면 지워져요. 고슴도치는 두 번 빠르게 눌러서 놓아요. 빈 칸에서 시작해 드래그하면 × 를 긋고, × 칸에서 시작해 드래그하면 × 를 지워요.</p>
 
@@ -396,15 +457,23 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     <div class="lbResult" id="lbResult" hidden></div>
     <div class="seg" id="lbSeg" role="group" aria-label="리더보드 난이도"></div>
     <p class="lbNote">사과 5개로 몇 레벨까지 가는지 겨뤄요. 클리어한 레벨이 많을수록, 같으면 누적 시간이 짧을수록 위에 올라가요. 난이도마다 각자 최고 기록 하나만 남아요.</p>
-    <form class="nickRow" id="nickForm">
-      <label for="nickInput">내 닉네임</label>
-      <input id="nickInput" maxlength="12" autocomplete="nickname" placeholder="1~12자">
-      <button class="btn" type="submit">저장</button>
-      <span id="nickMsg" role="status"></span>
-    </form>
     <div class="lbTableWrap" id="lbBody"><p class="empty">리더보드를 불러오는 중…</p></div>
     <p class="lbStatus" id="lbStatus"></p>
   </div>
+</div>
+<div class="modal" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="pfTitle" hidden>
+  <form class="card profileCard" id="profileForm">
+    <h2 id="pfTitle">내 프로필</h2>
+    <div class="pfPreview" aria-hidden="true"><span id="pfPrevEmoji">🦔</span><span id="pfPrevName"></span></div>
+    <div class="emojiGrid" id="emojiGrid" role="radiogroup" aria-label="프로필 이모지"></div>
+    <label class="pfLabel" for="pfNick">닉네임 <small>1~12자</small></label>
+    <input id="pfNick" maxlength="12" autocomplete="nickname" placeholder="리더보드에 보일 이름">
+    <p class="pfMsg" id="pfMsg" role="status"></p>
+    <div class="row">
+      <button class="btn" id="pfCancel" type="button">취소</button>
+      <button class="btn primary" id="pfSave" type="submit">저장</button>
+    </div>
+  </form>
 </div>
 <div class="modal" id="quitModal" role="dialog" aria-modal="true" aria-labelledby="quitTitle" aria-describedby="quitBody" hidden>
   <div class="card">
@@ -769,8 +838,11 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const playing = S.phase === 'play';
     $('undoBtn').disabled = !S.history.length || !playing;
     $('hintBtn').disabled = !playing || (run && S.run.apples <= 1);
-    $('hintBtn').textContent = run ? '힌트 (사과 1개)' : '힌트';
-    $('restartBtn').textContent = run ? '보드 비우기' : '다시 시작';
+    // Long labels on wide screens, short ones on phones (see .tLong / .tShort).
+    $('hintBtn').innerHTML = run ? '<span class="tLong">힌트 (사과 1개)</span><span class="tShort">힌트 −🍎</span>' : '힌트';
+    $('hintBtn').setAttribute('aria-label', run ? '힌트 (사과 1개)' : '힌트');
+    $('restartBtn').innerHTML = run ? '<span class="tLong">보드 비우기</span><span class="tShort">비우기</span>' : '다시 시작';
+    $('restartBtn').setAttribute('aria-label', run ? '보드 비우기' : '다시 시작');
     $('restartBtn').disabled = run ? !playing : false;
     $('quitBtn').hidden = !run;
     $('quitBtn').disabled = !runActive() || !runStarted();
@@ -1168,6 +1240,10 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     store.set('hedgedoku.player', player);
   }
   let nickname = store.get('hedgedoku.nick', '');
+  // Profile emoji: one of a fixed set (the server accepts only these).
+  const AVATARS = ['🦔', '🐰', '🐻', '🐼', '🦊', '🐸', '🐧', '🐹', '🐨', '🦉', '🐢', '🐙'];
+  const validAvatar = a => AVATARS.includes(a) ? a : '';
+  let avatar = validAvatar(store.get('hedgedoku.avatar', ''));
   const cleanNick = s => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, NICK_MAX);
 
   const ERRORS = {
@@ -1175,6 +1251,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     bad_nickname: '닉네임은 1~12자로 정해 주세요.',
     bad_diff: '알 수 없는 난이도라 기록을 저장하지 못했어요.',
     bad_score: '기록 값이 올바르지 않아 저장하지 못했어요.',
+    bad_avatar: '고를 수 없는 이모지예요.',
   };
   async function sb(path, { method = 'GET', body, headers = {} } = {}) {
     const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
@@ -1196,12 +1273,23 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   const lbCache = {};
   let lbState = lbEnabled ? 'loading' : 'off', lbToken = 0, lbLoadedAt = 0;
 
+  // The avatar column arrives with supabase/profile-avatar.sql; until that runs, read without it.
+  let hasAvatarCol = true;
+  const cols = () => 'player_id,nickname,levels,time_ms' + (hasAvatarCol ? ',avatar' : '');
+  async function sbRows(query) {
+    try { return await (await sb(`leaderboard?select=${cols()}&${query}`)).json(); }
+    catch (e) {
+      if (!hasAvatarCol || !/avatar/.test(e?.message || '')) throw e;
+      hasAvatarCol = false;
+      return await (await sb(`leaderboard?select=${cols()}&${query}`)).json();
+    }
+  }
   async function loadLB(diff) {
     const q = `diff=eq.${diff}`;
-    const top = await (await sb(`leaderboard?select=player_id,nickname,levels,time_ms&${q}&order=levels.desc,time_ms.asc,updated_at.asc&limit=${LB_TOP}`)).json();
+    const top = await sbRows(`${q}&order=levels.desc,time_ms.asc,updated_at.asc&limit=${LB_TOP}`);
     let mine = top.find(r => r.player_id === player.id) || null, myRank = mine ? top.indexOf(mine) + 1 : 0;
     if (!mine) {
-      const me = await (await sb(`leaderboard?select=player_id,nickname,levels,time_ms&${q}&player_id=eq.${player.id}`)).json();
+      const me = await sbRows(`${q}&player_id=eq.${player.id}`);
       if (me[0]) {
         mine = me[0];
         const ahead = await sb(`leaderboard?select=player_id&${q}&or=(levels.gt.${mine.levels},and(levels.eq.${mine.levels},time_ms.lt.${mine.time_ms}))`,
@@ -1230,7 +1318,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 
   async function submitScore(diff, levels, timeMs) {
     if (!lbEnabled) return { ok: false, msg: '리더보드가 아직 설정되지 않아 기록은 이 기기에만 남아요.' };
-    if (!nickname) return { ok: false, needNick: true, msg: '닉네임을 정하면 리더보드에 올라가요.' };
+    if (!nickname) return { ok: false, needNick: true, msg: '프로필에서 닉네임을 정하면 리더보드에 올라가요.' };
     try {
       const res = await (await sb('rpc/submit_score', {
         method: 'POST',
@@ -1275,7 +1363,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   };
   function localEntries(diff) {
     const runs = localRuns(diff), cur = S.run?.localId;
-    const row = (x, pos) => ({ id: x.id, name: localName(x), levels: x.levels, timeMs: x.timeMs, pos });
+    const row = (x, pos) => ({ id: x.id, name: localName(x), avatar, levels: x.levels, timeMs: x.timeMs, pos });
     const list = runs.slice(0, LB_TOP).map((x, k) => row(x, k + 1));
     const idx = cur ? runs.findIndex(x => x.id === cur) : -1;
     if (idx >= LB_TOP) list.push(null, row(runs[idx], idx + 1));
@@ -1296,10 +1384,10 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     if (!lbEnabled) return localEntries(diff);
     const data = lbCache[diff];
     if (!data) return null;
-    const list = data.rows.map((r, k) => ({ id: r.player_id, name: r.nickname, levels: Number(r.levels) | 0, timeMs: Number(r.time_ms) || 0, pos: k + 1 }));
+    const list = data.rows.map((r, k) => ({ id: r.player_id, name: r.nickname, avatar: validAvatar(r.avatar), levels: Number(r.levels) | 0, timeMs: Number(r.time_ms) || 0, pos: k + 1 }));
     if (data.mine && data.myRank > LB_TOP) {
       const m = data.mine;
-      list.push(null, { id: m.player_id, name: m.nickname, levels: Number(m.levels) | 0, timeMs: Number(m.time_ms) || 0, pos: data.myRank });
+      list.push(null, { id: m.player_id, name: m.nickname, avatar: validAvatar(m.avatar), levels: Number(m.levels) | 0, timeMs: Number(m.time_ms) || 0, pos: data.myRank });
     }
     return { list, myRank: data.myRank || 0 };
   }
@@ -1322,9 +1410,10 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
       return;
     }
     S.lastResult = { ok: false, msg: '기록 저장 중…' }; renderResult();
-    // No nickname yet: register right away under a temporary one (it can be changed in the window).
+    // No profile yet: register right away under a temporary one (it can be changed in 내 프로필).
     let autoNamed = false;
-    if (!nickname) { setNickname(autoNick(), false); autoNamed = true; }
+    if (!nickname) { setProfile(autoNick(), avatar || AVATARS[Math.floor(Math.random() * AVATARS.length)]); autoNamed = true; }
+    await syncProfile();
     let before = null;
     {
       // Snapshot the board before submitting; if that lookup fails, skip the animation rather than guess.
@@ -1333,7 +1422,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     }
     const res = await submitScore(r.diff, r.cleared, r.totalMs);
     if (S.run !== r) { hold = null; return; }
-    if (res.done && autoNamed) res.msg += ` · 닉네임 "${nickname}"은 아래에서 바꿀 수 있어요`;
+    if (res.done && autoNamed) { res.msg = res.msg.replace('리더보드에 등록했어요', `"${nickname}" 이름으로 등록했어요`); res.autoNamed = true; }
     S.lastResult = res;
     if (res.done) {
       r.submitted = true; saveRun();
@@ -1382,10 +1471,6 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const box = $('lbResult');
     const r = S.run;
     const finished = S.mode === 'run' && r?.finished;
-    // After a run, the nickname row stays hidden until the save result is known, and only appears when the
-    // run actually put a name on the board (new best / first entry) or the nickname needs fixing.
-    const res = S.lastResult;
-    $('nickForm').hidden = !!finished && !(res?.needNick || (res?.done && res.status !== 'not_better'));
     if (!finished) { box.hidden = true; return; }
     const d = DIFFS.find(x => x.id === r.diff);
     box.hidden = false;
@@ -1400,7 +1485,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     renderSaveArea();
   }
 
-  // Save message with a nickname form or a retry button when needed.
+  // Save message, with a button to the profile window or a retry button when useful.
   function renderSaveArea() {
     const el = $('saveArea'); if (!el) return;
     const res = S.lastResult;
@@ -1409,44 +1494,116 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const p = document.createElement('p');
     p.className = 'save' + (res.ok ? ' ok' : ''); p.textContent = res.msg;
     el.appendChild(p);
-    if (res.needNick) {
-      const f = document.createElement('form'); f.className = 'nickForm';
-      f.innerHTML = `<input id="ovNick" maxlength="${NICK_MAX}" autocomplete="nickname" placeholder="닉네임 (1~12자)" aria-label="닉네임"><button class="btn primary" type="submit">등록</button>`;
-      f.onsubmit = e => {
-        e.preventDefault();
-        const v = cleanNick($('ovNick').value);
-        if (!v) { $('ovNick').focus(); return; }
-        setNickname(v, false); trySubmit();
-      };
-      el.appendChild(f);
-      $('ovNick').value = nickname;
-      if (!lbModal.hidden) $('ovNick').focus({ preventScroll: true });
-    } else if (res.retry) {
-      const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = '다시 시도';
-      b.onclick = trySubmit; el.appendChild(b);
-    }
+    const button = (text, onclick) => {
+      const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = text;
+      b.onclick = onclick; el.appendChild(b);
+    };
+    if (res.needNick) button('내 프로필 열기', () => openProfile(true));
+    else if (res.retry) button('다시 시도', trySubmit);
+    else if (res.autoNamed) button('프로필 꾸미기', () => openProfile());
   }
 
-  async function setNickname(v, syncServer = true) {
-    nickname = v; store.set('hedgedoku.nick', v); $('nickInput').value = v;
-    if (!syncServer || !lbEnabled) { if (!lbEnabled && !hold && !pendingAnim) renderLB(); return { ok: true }; }
+  // ----- my profile (emoji + nickname) -----
+  function setProfile(nick, av) {
+    nickname = nick; avatar = validAvatar(av);
+    store.set('hedgedoku.nick', nickname); store.set('hedgedoku.avatar', avatar);
+    renderProfileBtn();
+    if (!lbEnabled && !hold && !pendingAnim) renderLB();
+  }
+  function renderProfileBtn() {
+    $('pfBtnEmoji').textContent = avatar || '🦔';
+    $('pfBtnEmoji').classList.toggle('none', !avatar);
+    $('pfBtnName').textContent = nickname || '프로필 만들기';
+    $('profileOpen').setAttribute('aria-label', nickname ? `내 프로필: ${nickname}` : '프로필 만들기');
+  }
+  // Send the profile to the server when it changed since the last successful sync.
+  async function syncProfile() {
+    if (!lbEnabled || !nickname) return { ok: true };
+    const key = `${player.id}|${nickname}|${avatar}`;
+    if (store.get('hedgedoku.profileSynced', '') === key) return { ok: true };
+    const body = { p_player: player.id, p_secret: player.secret, p_nickname: nickname };
     try {
-      await sb('rpc/set_nickname', { method: 'POST', body: { p_player: player.id, p_secret: player.secret, p_nickname: v } });
-      refreshLB();
+      try { await sb('rpc/save_profile', { method: 'POST', body: { ...body, p_avatar: avatar || null } }); }
+      catch (e) {
+        // Before supabase/profile-avatar.sql runs there is no save_profile: keep the nickname at least,
+        // and leave the profile unmarked so the emoji is sent once the function exists.
+        if (!/save_profile/.test(e?.message || '')) throw e;
+        await sb('rpc/set_nickname', { method: 'POST', body });
+        return { ok: true };
+      }
+      store.set('hedgedoku.profileSynced', key);
       return { ok: true };
     } catch (e) { return { ok: false, msg: errorText(e) }; }
   }
 
-  $('nickInput').value = nickname;
-  $('nickForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const v = cleanNick($('nickInput').value), msg = $('nickMsg');
-    if (!v) { msg.textContent = '1~12자로 정해 주세요.'; return; }
-    msg.textContent = '저장 중…';
-    const res = await setNickname(v);
-    msg.textContent = res.ok ? '저장했어요' : res.msg;
-    setTimeout(() => { if (msg.textContent === '저장했어요') msg.textContent = ''; }, 2000);
+  const profileModal = $('profileModal');
+  let pfDraft = { avatar: '', opener: null };
+  $('emojiGrid').innerHTML = AVATARS.map(a => `<button type="button" role="radio" aria-checked="false" data-a="${a}" aria-label="${a}">${a}</button>`).join('');
+  function paintDraft() {
+    const focusable = pfDraft.avatar || AVATARS[0];
+    $('emojiGrid').querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-checked', String(b.dataset.a === pfDraft.avatar));
+      b.tabIndex = b.dataset.a === focusable ? 0 : -1;
+    });
+    $('pfPrevEmoji').textContent = pfDraft.avatar || '🦔';
+    $('pfPrevEmoji').style.opacity = pfDraft.avatar ? '' : '.3';
+    $('pfPrevName').textContent = cleanNick($('pfNick').value) || '이름을 정해 주세요';
+  }
+  function openProfile(focusName = false) {
+    pfDraft = { avatar: avatar || '', opener: document.activeElement };
+    $('pfNick').value = nickname;
+    $('pfMsg').textContent = '';
+    $('pfSave').disabled = false;
+    paintDraft();
+    profileModal.hidden = false;
+    const target = focusName || pfDraft.avatar ? $('pfNick') : $('emojiGrid').querySelector('[tabindex="0"]');
+    target.focus({ preventScroll: true });
+  }
+  function closeProfile() {
+    if (profileModal.hidden) return;
+    profileModal.hidden = true;
+    pfDraft.opener?.focus?.({ preventScroll: true });
+  }
+  $('profileOpen').onclick = () => openProfile();
+  $('pfCancel').onclick = closeProfile;
+  $('pfNick').addEventListener('input', paintDraft);
+  $('emojiGrid').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    pfDraft.avatar = b.dataset.a; paintDraft(); b.focus();
   });
+  $('emojiGrid').addEventListener('keydown', e => {
+    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 6, ArrowUp: -6 }[e.key];
+    if (step === undefined) return;
+    e.preventDefault();
+    const i = Math.max(0, AVATARS.indexOf(pfDraft.avatar));
+    pfDraft.avatar = AVATARS[(i + step + AVATARS.length) % AVATARS.length];
+    paintDraft(); $('emojiGrid').querySelector('[tabindex="0"]').focus();
+  });
+  $('profileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nick = cleanNick($('pfNick').value);
+    if (!pfDraft.avatar) { $('pfMsg').textContent = '이모지를 하나 골라 주세요.'; return; }
+    if (!nick) { $('pfMsg').textContent = '닉네임을 1~12자로 정해 주세요.'; $('pfNick').focus(); return; }
+    setProfile(nick, pfDraft.avatar);
+    $('pfSave').disabled = true; $('pfMsg').textContent = '';
+    const res = await syncProfile();
+    $('pfSave').disabled = false;
+    if (!res.ok) { $('pfMsg').textContent = `${res.msg} 이 기기에는 저장했고, 다음 기록을 올릴 때 다시 보낼게요.`; return; }
+    closeProfile();
+    toast('프로필을 저장했어요');
+    if (lbEnabled) refreshLB();
+    if (S.lastResult?.needNick) trySubmit();
+  });
+  profileModal.addEventListener('click', e => { if (e.target === profileModal) closeProfile(); });
+  profileModal.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeProfile(); return; }
+    if (e.key !== 'Tab') return;
+    const f = [...profileModal.querySelectorAll('button:not([disabled]):not([tabindex="-1"]), input')].filter(x => x.offsetParent);
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
+  renderProfileBtn();
 
   // ----- table -----
   function tableOf(list) {
@@ -1460,9 +1617,11 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
       if (r.pos <= 3) tr.classList.add('r' + r.pos);
       const me = r.id === meId();
       if (me) tr.classList.add('me');
-      tr.innerHTML = `<td class="rank">${r.pos}</td><td><div class="who"><span></span></div></td>
+      tr.innerHTML = `<td class="rank">${r.pos}</td><td><div class="who"><span class="av"></span><span class="nm"></span></div></td>
         <td class="num lvls">${r.levels}</td><td class="num time">${fmt(r.timeMs)}</td>`;
-      tr.querySelector('.who span').textContent = (r.name || '이름 없는 고슴도치') + (me ? ' (나)' : '');
+      const av = tr.querySelector('.av');
+      av.textContent = r.avatar || '🦔'; av.classList.toggle('none', !r.avatar);
+      tr.querySelector('.nm').textContent = (r.name || '이름 없는 고슴도치') + (me ? ' (나)' : '');
       tb.appendChild(tr);
     }
     table.appendChild(tb);
@@ -1577,6 +1736,27 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     if (S.run?.finished && S.lastResult?.retry) trySubmit();
   });
 
+  // ---------- fit the board to short screens ----------
+  // The board shrinks (never below BOARD_MIN px) so that it and the action buttons fit in the viewport height.
+  const BOARD_MIN = 260;
+  function fitBoard() {
+    const wrap = document.querySelector('.wrap'), actions = document.querySelector('.actions');
+    const wrapW = wrap.clientWidth;
+    const gap = parseFloat(getComputedStyle(wrap).rowGap) || 16;
+    const top = boardwrap.getBoundingClientRect().top + scrollY;
+    const room = Math.floor(innerHeight - top - gap - actions.offsetHeight - 8);
+    const size = Math.max(BOARD_MIN, Math.min(wrapW, room));
+    const width = size >= wrapW ? '' : `${size}px`;
+    if (boardwrap.style.width !== width) boardwrap.style.width = width;
+  }
+  addEventListener('resize', fitBoard);
+  window.visualViewport?.addEventListener('resize', fitBoard);
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(fitBoard);
+    ['header', '.controls', '.status', '.actions'].forEach(sel => { const el = document.querySelector(sel); if (el) ro.observe(el); });
+  }
+  document.fonts?.ready?.then(fitBoard);
+
   // ---------- boot ----------
   function start() {
     const saved = store.get('hedgedoku.run', null);
@@ -1588,6 +1768,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     renderLB();
   }
   start();
+  fitBoard();
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
