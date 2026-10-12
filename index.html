@@ -1,0 +1,1556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>고슴도쿠</title>
+<meta name="description" content="색깔 덤불마다 고슴도치를 한 마리씩, 서로 닿지 않게 배치하는 논리 퍼즐. 사과 5개로 몇 레벨까지 갈 수 있을까요?">
+<meta name="theme-color" content="#8a5a2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="고슴도쿠">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta property="og:title" content="고슴도쿠">
+<meta property="og:description" content="고슴도치 자리 찾기 논리 퍼즐">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<style>
+/* Layout: one centered play column (header → mode/difficulty → status → board → actions → leaderboard → rules), forest-floor palette, board is the hero */
+:root {
+  --bg: #e9ece0;
+  --surface: #f6f7ef;
+  --ink: #2e2a21;
+  --muted: #6a6656;
+  --accent: #8a5a2b;
+  --accent-ink: #fffaf2;
+  --accent-soft: rgba(138, 90, 43, .12);
+  --line: #3b3226;
+  --grid: rgba(59, 50, 38, .16);
+  --x: #5c5142;
+  --danger: #c0443b;
+  --ring: #e0a456;
+  --shade: rgba(46, 34, 20, .36);
+  --gold: #c9962a; --silver: #8d96a0; --bronze: #b0703c;
+  --r0: #fac6c1; --r1: #fcd9b0; --r2: #f9efad; --r3: #e0f3b2; --r4: #c2eac3;
+  --r5: #b6eae2; --r6: #c0def7; --r7: #cbcff8; --r8: #dfc9f6; --r9: #f6c8ec; --r10: #e5dac9;
+  --font-display: "Jua", "Gowun Dodum", system-ui, sans-serif;
+  --font-body: "Gowun Dodum", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1e19; --surface: #262922; --ink: #ece8dc; --muted: #a8a391;
+    --accent: #d69c5f; --accent-ink: #1c1e19; --accent-soft: rgba(214, 156, 95, .14);
+    --line: #0d0e0b; --grid: rgba(255,255,255,.08);
+    --x: #3e3529; --danger: #ef7a6f; --ring: #f0b86a; --shade: rgba(0, 0, 0, .55);
+    --gold: #e2b54a; --silver: #b4bcc6; --bronze: #d08d55;
+    --r0: #e0958f; --r1: #e5b27c; --r2: #ddcf7c; --r3: #bcd683; --r4: #91c994;
+    --r5: #86c9bf; --r6: #92bce2; --r7: #a1a6e2; --r8: #bba0de; --r9: #da9dcd; --r10: #c2b199;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1e19; --surface: #262922; --ink: #ece8dc; --muted: #a8a391;
+  --accent: #d69c5f; --accent-ink: #1c1e19; --accent-soft: rgba(214, 156, 95, .14);
+  --line: #0d0e0b; --grid: rgba(255,255,255,.08);
+  --x: #3e3529; --danger: #ef7a6f; --ring: #f0b86a; --shade: rgba(0, 0, 0, .55);
+  --gold: #e2b54a; --silver: #b4bcc6; --bronze: #d08d55;
+  --r0: #e0958f; --r1: #e5b27c; --r2: #ddcf7c; --r3: #bcd683; --r4: #91c994;
+  --r5: #86c9bf; --r6: #92bce2; --r7: #a1a6e2; --r8: #bba0de; --r9: #da9dcd; --r10: #c2b199;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-inline: 16px; padding-block: 20px 40px;
+}
+:root { color-scheme: light; -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; }
+body { padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)); }
+button, input, label { touch-action: manipulation; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.nickRow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .88rem; color: var(--muted); }
+.nickRow input, .card input {
+  font: inherit; font-size: .95rem; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--grid); border-radius: 10px; padding: 7px 10px; width: 12em; max-width: 100%;
+}
+.nickRow input:focus-visible, .card input:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+.card .nickForm { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.lbStatus { font-size: .8rem; color: var(--muted); margin: 0; }
+header { display: flex; align-items: center; gap: 12px; }
+header svg { width: 52px; height: 52px; flex: none; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line-height: 1; margin: 0; letter-spacing: .01em; }
+.tagline { margin: 4px 0 0; color: var(--muted); font-size: .9rem; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); padding: 4px; border-radius: 999px; border: 1px solid var(--grid); }
+.seg button {
+  font: inherit; font-size: .88rem; border: 0; background: transparent; color: var(--muted);
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.seg button:disabled { opacity: .45; cursor: default; }
+.seg.mode button { font-family: var(--font-display); font-size: 1rem; padding: 4px 16px; }
+.lockNote { font-size: .8rem; color: var(--muted); }
+
+.status { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .9rem; color: var(--muted); min-height: 34px; }
+.lives { display: flex; gap: 4px; }
+.lives svg { width: 24px; height: 24px; transition: transform .2s, opacity .2s; }
+.lives svg.lost { opacity: .25; filter: grayscale(1); transform: scale(.85); }
+.lives svg.drop { animation: appleDrop .6s ease-in; }
+.lives .out { font-family: var(--font-display); font-size: .95rem; color: var(--danger); margin-left: 4px; align-self: center; }
+@keyframes appleDrop { 0% { opacity: 1; filter: none; transform: scale(1.35); } 40% { opacity: 1; filter: none; transform: translateY(-4px) scale(1.2); } 100% { opacity: .25; transform: translateY(6px) scale(.85); } }
+.boardwrap.failed .board { border-color: var(--danger); animation: boardShake .5s; }
+@keyframes boardShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+.cell .ghost { opacity: .5; animation: none; }
+/* Quills: hedgehogs shoot spikes along their row, column and diagonals; × marks land as each spike passes. */
+.fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: 10px; }
+.quill {
+  position: absolute; left: 0; top: -3px; width: 18px; height: 6px; transform-origin: 0 50%;
+  background: linear-gradient(to right, #a8743f, #4a2f16); clip-path: polygon(0 25%, 100% 50%, 0 75%);
+}
+.cell.stab .mark { animation: stab .24s cubic-bezier(.2, 1.6, .4, 1) backwards; animation-delay: var(--d, 0ms); }
+.cell.stab::before { animation: shadeIn .2s ease-out backwards; animation-delay: var(--d, 0ms); }
+@keyframes stab { from { opacity: 0; transform: scale(1.9) rotate(-25deg); } to { opacity: .85; transform: none; } }
+@keyframes shadeIn { from { opacity: 0; } to { opacity: 1; } }
+.cell.puff svg { animation: puff .35s ease-out; }
+@keyframes puff { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.cell.fatal::after {
+  content: ""; position: absolute; inset: 2px; border: 3px solid var(--danger); border-radius: 6px; pointer-events: none;
+}
+.overlay.peek { background: transparent; place-items: end center; padding-bottom: 12px; pointer-events: none; }
+.overlay.peek .card { width: auto; padding: 10px; pointer-events: auto; }
+.overlay.peek .card > :not(.row) { display: none; }
+.overlay.peek .card .row { margin-top: 0; }
+.card .apples { display: flex; gap: 4px; }
+.card .apples svg { width: 26px; height: 26px; opacity: .3; filter: grayscale(1); }
+.card h2.fail { color: var(--danger); }
+.info { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
+.info small { font-family: var(--font-body); font-size: .8rem; color: var(--muted); }
+.info button {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--grid);
+  background: var(--surface); color: var(--ink); font: inherit; cursor: pointer;
+}
+.info button:disabled { opacity: .4; cursor: default; }
+.info .check { color: var(--accent); font-size: .85em; }
+.timer { font-variant-numeric: tabular-nums; }
+
+.boardwrap { position: relative; }
+.board {
+  display: grid; width: 100%; aspect-ratio: 1; max-width: 100%;
+  border: 3px solid var(--line); border-radius: 10px; overflow: hidden;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  background: var(--line); transition: filter .2s;
+}
+.boardwrap.veiled .board { filter: blur(10px) saturate(.6); }
+.cell {
+  position: relative; border: 1px solid rgba(59, 50, 38, .16); padding: 0; margin: 0;
+  min-width: 0; min-height: 0; overflow: hidden;
+  display: grid; place-items: center; cursor: pointer; font: inherit; color: var(--x);
+  -webkit-tap-highlight-color: transparent;
+}
+.cell.bt { border-top: 2.5px solid var(--line); }
+.cell.bb { border-bottom: 2.5px solid var(--line); }
+.cell.bl { border-left: 2.5px solid var(--line); }
+.cell.br { border-right: 2.5px solid var(--line); }
+.cell:focus-visible { outline: 3px solid var(--ring); outline-offset: -4px; z-index: 1; }
+.cell .mark { position: relative; font-size: clamp(14px, 4.2vw, 24px); line-height: 1; opacity: .85; pointer-events: none; }
+.cell.x::before { content: ""; position: absolute; inset: 0; background: var(--shade); pointer-events: none; }
+.cell svg { position: absolute; inset: 9%; width: 82%; height: 82%; pointer-events: none; animation: pop .28s cubic-bezier(.3,1.6,.5,1); }
+.cell.hint::after {
+  content: ""; position: absolute; inset: 3px; border-radius: 8px;
+  box-shadow: 0 0 0 3px var(--ring); animation: glow 1.4s ease-out 2; pointer-events: none;
+}
+.cell.ouch { animation: shake .35s; }
+.cell.ouch .mark { color: var(--danger); opacity: 1; }
+@keyframes pop { from { transform: scale(.3); } to { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes glow { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--bg) 70%, transparent); border-radius: 10px;
+}
+.card {
+  background: var(--surface); border: 1px solid var(--grid); border-radius: var(--radius);
+  padding: 22px 24px; text-align: center; width: min(88%, 340px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.card h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.65rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+.card p { margin: 0; color: var(--muted); font-variant-numeric: tabular-nums; text-wrap: balance; }
+.card .big { font-family: var(--font-display); font-size: 1.3rem; color: var(--ink); }
+.card .save { font-size: .88rem; min-height: 1.4em; }
+.card .save.ok { color: var(--accent); }
+.card svg { width: 60px; height: 60px; }
+.card .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn {
+  font: inherit; font-size: .92rem; padding: 8px 14px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--grid); background: var(--surface); color: var(--ink);
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.warn { color: var(--danger); }
+.btn.danger { background: var(--danger); color: #fff; border-color: transparent; }
+.modal {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+  background: rgba(20, 16, 10, .45);
+}
+.modal .card { width: min(100%, 340px); max-width: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:focus-visible, .seg button:focus-visible, .info button:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); margin-left: auto; cursor: pointer; }
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+.howto { font-size: .85rem; color: var(--muted); margin: -6px 0 0; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 999px;
+  font-family: var(--font-display); font-size: 1.05rem; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+section h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; margin: 0; }
+.lb { border-top: 1px dashed var(--grid); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.lbHead { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.lbHead .seg button { font-size: .8rem; padding: 3px 10px; }
+.lbNote { font-size: .8rem; color: var(--muted); margin: 0; }
+.lbTableWrap { overflow-x: auto; }
+table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.lbt th { text-align: left; font-weight: 400; font-size: .75rem; letter-spacing: .06em; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--grid); }
+.lbt td { padding: 7px 6px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+.lbt th.num, .lbt td.num { text-align: right; }
+.lbt td.rank { width: 2.4em; font-family: var(--font-display); font-size: 1.05rem; text-align: center; }
+.lbt tr.r1 td.rank { color: var(--gold); }
+.lbt tr.r2 td.rank { color: var(--silver); }
+.lbt tr.r3 td.rank { color: var(--bronze); }
+.lbt tr.me td { background: var(--accent-soft); }
+.lbt tr.gap td { text-align: center; color: var(--muted); padding: 2px; border-bottom: 0; }
+.who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.who img { width: 24px; height: 24px; border-radius: 50%; flex: none; }
+.who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lvls { font-family: var(--font-display); font-size: 1.05rem; }
+.empty { color: var(--muted); font-size: .9rem; padding: 14px 0; text-align: center; }
+
+/* Leaderboard window */
+header .lbOpen { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; flex: none; }
+header .lbOpen svg { width: 18px; height: 18px; }
+.panel {
+  background: var(--surface); border: 1px solid var(--grid); border-radius: var(--radius);
+  width: min(100%, 480px); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain;
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.25);
+}
+.panelHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.panel h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.45rem; margin: 0; }
+.panel .seg button { font-size: .82rem; padding: 4px 11px; }
+.closeBtn {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--grid); background: var(--bg);
+  color: var(--ink); font: inherit; font-size: 1.35rem; line-height: 1; cursor: pointer; flex: none;
+}
+.closeBtn:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.lbResult {
+  background: var(--accent-soft); border-radius: 12px; padding: 12px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+}
+.lbResult .resHead { font-size: .85rem; color: var(--muted); }
+.lbResult .resStats { font-family: var(--font-display); font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.rankMove { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--accent); min-height: 1.2em; }
+.rankMove .from { color: var(--muted); font-size: .7em; }
+.rankMove .arrow { color: var(--muted); font-size: .7em; margin: 0 .25em; }
+.rankMove .tag { display: block; font-family: var(--font-body); font-size: .8rem; color: var(--muted); }
+.lbResult .save { margin: 0; color: var(--muted); font-size: .88rem; }
+.lbResult .save.ok { color: var(--accent); }
+.lbt tr.me { position: relative; z-index: 1; }
+.lbt tr.me.flash td { animation: meFlash 1.8s ease-out; }
+@keyframes meFlash { 0%, 30% { background: color-mix(in srgb, var(--ring) 55%, transparent); } 100% { background: var(--accent-soft); } }
+@media (prefers-reduced-motion: reduce) { .lbt tr.me.flash td { animation: none; } }
+
+.rules { border-top: 1px dashed var(--grid); padding-top: 14px; }
+.rules h2 { margin-bottom: 8px; }
+.rules ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 4px; }
+.rules li::marker { color: var(--accent); font-family: var(--font-display); }
+.rules .note { margin: 10px 0 0; font-size: .82rem; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cell svg, .cell.ouch, .cell.hint::after, .cell.stab .mark, .cell.stab::before, .cell.puff svg { animation: none; }
+  .toast, .lives svg, .board { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="hog" viewBox="0 0 100 100">
+      <path id="hogSpikes" fill="#6b4423"/>
+      <ellipse cx="56" cy="63" rx="33" ry="24" fill="#a8743f"/>
+      <ellipse cx="40" cy="87" rx="6" ry="3.5" fill="#6b4423"/>
+      <ellipse cx="70" cy="87" rx="6" ry="3.5" fill="#6b4423"/>
+      <ellipse cx="29" cy="67" rx="20" ry="15.5" fill="#f1d3a8"/>
+      <circle cx="41" cy="53" r="5" fill="#e3b886"/>
+      <circle cx="11" cy="69" r="4.2" fill="#2b1d12"/>
+      <circle cx="27" cy="61" r="3.3" fill="#2b1d12"/>
+      <circle cx="28.2" cy="59.8" r="1.1" fill="#fff"/>
+      <ellipse cx="33" cy="71" rx="4.2" ry="2.6" fill="#f08f8f" opacity=".75"/>
+    </symbol>
+    <symbol id="apple" viewBox="0 0 24 24">
+      <path d="M12 7c-1.2-1-3.8-1.6-5.6.2C4.5 9.1 4.8 13 6.6 16.2 8 18.7 9.6 20.3 11 19.8c.6-.2.8-.4 1-.4s.4.2 1 .4c1.4.5 3-1.1 4.4-3.6 1.8-3.2 2.1-7.1.2-9C15.8 5.4 13.2 6 12 7z" fill="#d9483b"/>
+      <path d="M12 7c0-1.6.6-3 1.6-4" stroke="#6b4423" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M13 4.6c1.6-1.1 3.4-1 4.4-.4-1 1.5-2.8 2-4.4.4z" fill="#6aa84f"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <svg aria-hidden="true"><use href="#hog"/></svg>
+    <div>
+      <h1>고슴도쿠</h1>
+      <p class="tagline">가시가 따가워서 서로 붙기 싫은 고슴도치들의 자리 찾기 퍼즐</p>
+    </div>
+    <button class="btn lbOpen" id="lbOpen" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M2 21h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="currentColor"/></svg>
+      리더보드
+    </button>
+  </header>
+
+  <div class="controls">
+    <div class="seg mode" id="modeSeg" role="group" aria-label="모드">
+      <button data-m="run" aria-pressed="true">도전</button>
+      <button data-m="practice" aria-pressed="false">연습</button>
+    </div>
+    <div class="seg" id="diffSeg" role="group" aria-label="난이도"></div>
+    <span class="lockNote" id="lockNote" hidden>첫 수를 둔 뒤에는 난이도를 바꿀 수 없어요</span>
+  </div>
+
+  <div class="status">
+    <div class="lives" id="lives" aria-label="남은 사과"></div>
+    <div class="info" id="info"></div>
+    <span class="timer" id="timer" aria-label="시간">00:00</span>
+  </div>
+
+  <div class="boardwrap" id="boardwrap">
+    <div class="board" id="board" role="grid" aria-label="퍼즐 보드"></div>
+    <div class="fx" id="fx" aria-hidden="true"></div>
+    <div class="overlay" id="overlay" hidden></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="undoBtn">되돌리기</button>
+    <button class="btn" id="hintBtn">힌트</button>
+    <button class="btn" id="restartBtn">보드 비우기</button>
+    <button class="btn warn" id="quitBtn">도전 끝내기</button>
+    <label class="toggle"><input type="checkbox" id="autoX" checked> 자동 × 표시</label>
+  </div>
+  <p class="howto">빈 칸을 누르면 ×, × 나 고슴도치를 누르면 지워져요. 고슴도치는 두 번 빠르게 눌러서 놓아요. 빈 칸에서 시작해 드래그하면 × 를 긋고, × 칸에서 시작해 드래그하면 × 를 지워요.</p>
+
+  <section class="rules">
+    <h2>규칙</h2>
+    <ol>
+      <li>색깔 덤불마다 고슴도치는 딱 한 마리.</li>
+      <li>같은 가로줄, 같은 세로줄에는 한 마리만.</li>
+      <li>가시가 따가워서 대각선으로도 붙어 있으면 안 돼요.</li>
+      <li>찍지 말고 추리로 풀기. 틀린 자리에 놓으면 사과를 하나 잃어요.</li>
+    </ol>
+    <p class="note">도전 모드에서는 사과가 다음 판으로 그대로 이어지고, 힌트는 사과 1개를 써요. 퍼즐은 도전할 때마다 새로 만들어지고, 모든 판은 답이 하나뿐이에요. 연습 모드는 판마다 사과가 다시 차고 기록은 남지 않아요.</p>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="lbModal" role="dialog" aria-modal="true" aria-labelledby="lbTitle" hidden>
+  <div class="panel" id="lbPanel">
+    <div class="panelHead">
+      <h2 id="lbTitle">리더보드</h2>
+      <button class="closeBtn" id="lbClose" type="button" aria-label="리더보드 닫기">×</button>
+    </div>
+    <div class="lbResult" id="lbResult" hidden></div>
+    <div class="seg" id="lbSeg" role="group" aria-label="리더보드 난이도"></div>
+    <p class="lbNote">사과 5개로 몇 레벨까지 가는지 겨뤄요. 클리어한 레벨이 많을수록, 같으면 누적 시간이 짧을수록 위에 올라가요. 난이도마다 각자 최고 기록 하나만 남아요.</p>
+    <form class="nickRow" id="nickForm">
+      <label for="nickInput">내 닉네임</label>
+      <input id="nickInput" maxlength="12" autocomplete="nickname" placeholder="1~12자">
+      <button class="btn" type="submit">저장</button>
+      <span id="nickMsg" role="status"></span>
+    </form>
+    <div class="lbTableWrap" id="lbBody"><p class="empty">리더보드를 불러오는 중…</p></div>
+    <p class="lbStatus" id="lbStatus"></p>
+  </div>
+</div>
+<div class="modal" id="quitModal" role="dialog" aria-modal="true" aria-labelledby="quitTitle" aria-describedby="quitBody" hidden>
+  <div class="card">
+    <h2 id="quitTitle">도전을 끝낼까요?</h2>
+    <p id="quitBody"></p>
+    <div class="row">
+      <button class="btn" id="quitCancel" type="button">계속하기</button>
+      <button class="btn danger" id="quitConfirm" type="button">끝내기</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(() => {
+  // ---------- hedgehog spikes (generated once) ----------
+  (function buildSpikes() {
+    const cx = 57, cy = 62, K = 13, a0 = 200, a1 = 372;
+    let d = `M${cx} ${cy}`;
+    for (let i = 0; i <= 2 * K; i++) {
+      const t = (a0 + (a1 - a0) * i / (2 * K)) * Math.PI / 180;
+      const r = i % 2 ? 41 : 31;
+      d += ` L${(cx + r * Math.cos(t)).toFixed(1)} ${(cy + r * Math.sin(t) * 0.86).toFixed(1)}`;
+    }
+    document.getElementById('hogSpikes').setAttribute('d', d + ' Z');
+  })();
+
+  // ---------- puzzle generation ----------
+  const DIFFS = [
+    { id: 'easy', label: '쉬움', n: 5 },
+    { id: 'normal', label: '보통', n: 7 },
+    { id: 'hard', label: '어려움', n: 9 },
+    { id: 'expert', label: '매우 어려움', n: 11 },
+  ];
+  const DIFF_IDS = DIFFS.map(d => d.id);
+  const sizeOf = id => DIFFS.find(d => d.id === id).n;
+  const MAX_LEVEL = 999;
+  const APPLES = 5;
+
+  function hashStr(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function shuffle(arr, rng) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+
+  function randomPerm(N, rng) {
+    const perm = [], used = Array(N).fill(false);
+    const rec = row => {
+      if (row === N) return true;
+      for (const c of shuffle([...Array(N).keys()], rng)) {
+        if (used[c] || (row > 0 && Math.abs(perm[row - 1] - c) <= 1)) continue;
+        used[c] = true; perm[row] = c;
+        if (rec(row + 1)) return true;
+        used[c] = false;
+      }
+      return false;
+    };
+    return rec(0) ? perm : null;
+  }
+
+  const nbrs4 = (i, N) => {
+    const r = Math.floor(i / N), c = i % N, out = [];
+    if (r > 0) out.push(i - N); if (r < N - 1) out.push(i + N);
+    if (c > 0) out.push(i - 1); if (c < N - 1) out.push(i + 1);
+    return out;
+  };
+
+  function growRegions(N, perm, rng) {
+    const reg = Array(N * N).fill(-1);
+    perm.forEach((c, r) => { reg[r * N + c] = r; });
+    let left = N * N - N;
+    while (left > 0) {
+      const frontier = [];
+      for (let i = 0; i < N * N; i++) if (reg[i] < 0 && nbrs4(i, N).some(j => reg[j] >= 0)) frontier.push(i);
+      const f = frontier[Math.floor(rng() * frontier.length)];
+      const opts = nbrs4(f, N).filter(j => reg[j] >= 0).map(j => reg[j]);
+      reg[f] = opts[Math.floor(rng() * opts.length)];
+      left--;
+    }
+    return reg;
+  }
+
+  // Finds up to `limit` solutions (sol[row] = col). Always branches on the region with the fewest open cells.
+  function solve(reg, N, limit) {
+    const cellsOf = Array.from({ length: N }, () => []);
+    for (let i = 0; i < N * N; i++) cellsOf[reg[i]].push(i);
+    const blocked = new Int16Array(N * N), used = Array(N).fill(false), sol = Array(N).fill(-1), out = [];
+    const mark = (i, d) => {
+      const r = Math.floor(i / N), c = i % N;
+      for (let k = 0; k < N; k++) { blocked[r * N + k] += d; blocked[k * N + c] += d; }
+      for (let dr = -1; dr <= 1; dr += 2) for (let dc = -1; dc <= 1; dc += 2) {
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < N && cc >= 0 && cc < N) blocked[rr * N + cc] += d;
+      }
+    };
+    const rec = placed => {
+      if (placed === N) { out.push(sol.slice()); return; }
+      let best = -1, bestCount = Infinity;
+      for (let g = 0; g < N; g++) {
+        if (used[g]) continue;
+        let n = 0; for (const i of cellsOf[g]) if (!blocked[i]) n++;
+        if (n < bestCount) { bestCount = n; best = g; if (n === 0) return; }
+      }
+      used[best] = true;
+      for (const i of cellsOf[best]) {
+        if (blocked[i]) continue;
+        sol[Math.floor(i / N)] = i % N; mark(i, 1);
+        rec(placed + 1);
+        mark(i, -1);
+        if (out.length >= limit) break;
+      }
+      used[best] = false;
+    };
+    rec(0);
+    return out;
+  }
+
+  function connected(reg, g, N) {
+    const cells = []; for (let i = 0; i < N * N; i++) if (reg[i] === g) cells.push(i);
+    if (!cells.length) return false;
+    const seen = new Set([cells[0]]), stack = [cells[0]];
+    while (stack.length) { const i = stack.pop(); for (const j of nbrs4(i, N)) if (reg[j] === g && !seen.has(j)) { seen.add(j); stack.push(j); } }
+    return seen.size === cells.length;
+  }
+
+  // Break an alternate solution by moving one of its hedgehog cells into a neighbouring region.
+  function breakAlt(reg, alt, perm, N, rng) {
+    const cands = shuffle(alt.map((c, r) => c !== perm[r] ? r * N + c : -1).filter(i => i >= 0), rng);
+    for (const i of cands) {
+      const A = reg[i];
+      for (const B of shuffle([...new Set(nbrs4(i, N).map(j => reg[j]).filter(g => g !== A))], rng)) {
+        reg[i] = B;
+        if (connected(reg, A, N)) return true;
+        reg[i] = A;
+      }
+    }
+    return false;
+  }
+
+  // Palette --r0..--r9 is a hue ring (red → pink); --r10 is a neutral tan.
+  // Touching regions (including corner contact) get colors as far apart on the ring as possible.
+  const HUES = 10, NEUTRAL = 10;
+  const hueDist = (a, b) => a === NEUTRAL || b === NEUTRAL ? 2.5 : Math.min(Math.abs(a - b), HUES - Math.abs(a - b));
+  function assignColors(reg, N, rng) {
+    const adj = Array.from({ length: N }, () => new Set());
+    for (let i = 0; i < N * N; i++) {
+      const r = Math.floor(i / N), c = i % N;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        const rr = r + dr, cc = c + dc;
+        if (rr < 0 || rr >= N || cc < 0 || cc >= N) continue;
+        const g = reg[rr * N + cc];
+        if (g !== reg[i]) adj[reg[i]].add(g);
+      }
+    }
+    const order = shuffle([...Array(N).keys()], rng).sort((a, b) => adj[b].size - adj[a].size);
+    const colors = Array(N).fill(-1), free = shuffle([...Array(HUES + 1).keys()], rng);
+    for (const g of order) {
+      let best = -1, bestScore = -1;
+      for (const c of free) {
+        let score = Infinity;
+        for (const h of adj[g]) if (colors[h] >= 0) score = Math.min(score, hueDist(c, colors[h]));
+        if (score > bestScore) { bestScore = score; best = c; }
+      }
+      colors[g] = best; free.splice(free.indexOf(best), 1);
+    }
+    // Polish: swap colors between regions (or with an unused color) while the closest touching pair gets farther apart.
+    const quality = () => {
+      let min = Infinity, sum = 0;
+      for (let g = 0; g < N; g++) for (const h of adj[g]) if (h > g) { const d = hueDist(colors[g], colors[h]); min = Math.min(min, d); sum += d; }
+      return min * 1000 + sum;
+    };
+    let q = quality();
+    for (let pass = 0, improved = true; improved && pass < 20; pass++) {
+      improved = false;
+      for (let g = 0; g < N; g++) {
+        for (let h = g + 1; h < N; h++) {
+          [colors[g], colors[h]] = [colors[h], colors[g]];
+          const nq = quality();
+          if (nq > q) { q = nq; improved = true; } else [colors[g], colors[h]] = [colors[h], colors[g]];
+        }
+        for (let k = 0; k < free.length; k++) {
+          const old = colors[g]; colors[g] = free[k];
+          const nq = quality();
+          if (nq > q) { q = nq; improved = true; free[k] = old; } else colors[g] = old;
+        }
+      }
+    }
+    return colors;
+  }
+
+  function generate(N, seed) {
+    const rng = mulberry32(seed);
+    for (let attempt = 0; attempt < 300; attempt++) {
+      const perm = randomPerm(N, rng); if (!perm) continue;
+      const reg = growRegions(N, perm, rng);
+      for (let it = 0; it < 400; it++) {
+        const sols = solve(reg, N, 2);
+        if (sols.length === 1) return { N, reg, sol: perm, colors: assignColors(reg, N, rng) };
+        const alt = sols.find(s => s.some((c, r) => c !== perm[r]));
+        if (!breakAlt(reg, alt, perm, N, rng)) break;
+      }
+    }
+    throw new Error('generation failed');
+  }
+
+  const cache = new Map();
+  function puzzleFor(key, n) {
+    if (!cache.has(key)) cache.set(key, generate(n, hashStr('hedgedoku:' + key)));
+    return cache.get(key);
+  }
+
+  // ---------- storage (per-viewer convenience only) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  let cleared = store.get('hedgedoku.cleared', {});
+
+  // ---------- state ----------
+  // phase: 'play' | 'ready' (run level waiting to start) | 'between' (run level cleared) | 'over' (run ended)
+  //        | 'won' / 'lost' (practice)
+  const S = {
+    mode: 'run', diff: 'easy', P: null, cells: [], history: [], phase: 'play',
+    practice: { level: 1, hearts: APPLES, hints: 0 },
+    run: null,
+    clock: { acc: 0, since: 0, running: false },
+    lbDiff: 'easy',
+    lastResult: null,
+  };
+  const $ = id => document.getElementById(id);
+  const board = $('board'), overlay = $('overlay'), boardwrap = $('boardwrap');
+
+  const clockMs = () => S.clock.acc + (S.clock.running ? Date.now() - S.clock.since : 0);
+  const clockStart = () => { if (!S.clock.running) { S.clock.running = true; S.clock.since = Date.now(); } };
+  const clockPause = () => { if (S.clock.running) { S.clock.acc += Date.now() - S.clock.since; S.clock.running = false; } };
+  const clockReset = (ms = 0) => { S.clock = { acc: ms, since: 0, running: false }; };
+  const fmt = ms => { const s = Math.floor(ms / 1000); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+
+  const lives = () => S.mode === 'run' ? S.run.apples : S.practice.hearts;
+  const runActive = () => S.run && !S.run.finished;
+  // A run counts as started once the first move is made; until then the difficulty can still change.
+  const runStarted = () => runActive() && (S.run.cleared > 0 || S.run.level > 1 || !!S.run.moved);
+
+  // Board of the current run level; empty once that level is cleared (the run has already moved to the next level).
+  const runCells = () => S.phase === 'play' || S.phase === 'ready' ? S.cells.slice() : [];
+  function saveRun() {
+    if (!S.run) return;
+    const here = S.mode === 'run';
+    store.set('hedgedoku.run', { run: S.run, cells: here ? runCells() : S.run.cells, levelMs: here ? clockMs() : S.run.levelMs });
+  }
+
+  // ---------- loading boards ----------
+  function setBoard(P, cells) {
+    prevLives = null;
+    S.P = P; S.cells = cells && cells.length === P.N * P.N ? cells.slice() : Array(P.N * P.N).fill(0); S.history = [];
+    buildBoard();
+  }
+
+  function loadPractice(diff, level) {
+    S.mode = 'practice'; S.diff = diff;
+    S.practice = { level, hearts: APPLES, hints: 0 };
+    setBoard(puzzleFor(`${diff}:${level}`, sizeOf(diff)));
+    clockReset(); clockStart();
+    S.phase = 'play';
+    store.set('hedgedoku.practice', { diff, level });
+    hideOverlay(); render();
+  }
+
+  function newRun(diff) {
+    S.mode = 'run'; S.diff = diff; S.lbDiff = diff;
+    S.run = { diff, seed: Math.floor(Math.random() * 2 ** 31), level: 1, cleared: 0, totalMs: 0, apples: APPLES, hints: 0, finished: false };
+    loadRunLevel();
+    S.phase = 'ready';
+    saveRun(); render(); showReady(false);
+  }
+
+  function loadRunLevel(cells, levelMs = 0) {
+    const r = S.run;
+    setBoard(puzzleFor(`run:${r.seed}:${r.level}`, sizeOf(r.diff)), cells);
+    clockReset(levelMs);
+  }
+
+  function enterRunMode() {
+    S.mode = 'run';
+    if (!S.run) { newRun(S.diff); return; }
+    S.diff = S.run.diff;
+    if (S.run.finished) { loadRunLevel(); S.phase = 'over'; render(); if (S.run.endReason !== 'quit') revealFailure(-1, false); showOver(); return; }
+    loadRunLevel(S.run.cells, S.run.levelMs || 0);
+    const fresh = S.run.level === 1 && S.run.cleared === 0 && clockMs() === 0 && !S.cells.some(v => v);
+    S.phase = 'ready';
+    render(); showReady(!fresh);
+  }
+
+  function leaveRunMode() {
+    if (S.mode !== 'run' || !S.run) return;
+    clockPause();
+    S.run.cells = runCells(); S.run.levelMs = clockMs();
+    saveRun();
+  }
+
+  function beginLevel() {
+    S.phase = 'play'; clockStart(); hideOverlay(); render(); saveRun();
+    board.querySelector('.cell')?.focus({ preventScroll: true });
+  }
+
+  // ---------- rendering ----------
+  function buildBoard() {
+    const { N, reg, colors } = S.P;
+    board.style.gridTemplateColumns = `repeat(${N}, minmax(0, 1fr))`;
+    board.style.gridTemplateRows = `repeat(${N}, minmax(0, 1fr))`;
+    board.innerHTML = '';
+    for (let i = 0; i < N * N; i++) {
+      const r = Math.floor(i / N), c = i % N, g = reg[i];
+      const b = document.createElement('button');
+      b.className = 'cell'; b.dataset.i = i; b.setAttribute('role', 'gridcell');
+      b.style.background = `var(--r${colors[g]})`;
+      if (r > 0 && reg[i - N] !== g) b.classList.add('bt');
+      if (r < N - 1 && reg[i + N] !== g) b.classList.add('bb');
+      if (c > 0 && reg[i - 1] !== g) b.classList.add('bl');
+      if (c < N - 1 && reg[i + 1] !== g) b.classList.add('br');
+      board.appendChild(b);
+    }
+  }
+
+  let prevLives = null;
+  function render() {
+    const N = S.P.N, run = S.mode === 'run';
+    [...board.children].forEach((b, i) => {
+      const v = S.cells[i];
+      if (b.dataset.v !== String(v)) {
+        b.dataset.v = v;
+        b.classList.toggle('x', v === 1);
+        b.innerHTML = v === 2 ? '<svg aria-hidden="true"><use href="#hog"/></svg>' : v === 1 ? '<span class="mark">×</span>' : '';
+      }
+      b.setAttribute('aria-label', `${Math.floor(i / N) + 1}행 ${i % N + 1}열, ${v === 2 ? '고슴도치' : v === 1 ? '× 표시' : '빈 칸'}`);
+    });
+    const h = lives(), dropped = prevLives !== null && h < prevLives;
+    $('lives').innerHTML = Array.from({ length: APPLES }, (_, k) =>
+      `<svg class="${k < h ? '' : 'lost'}${dropped && k >= h && k < prevLives ? ' drop' : ''}"><use href="#apple"/></svg>`).join('')
+      + (h <= 0 ? '<span class="out">사과 없음</span>' : '');
+    $('lives').setAttribute('aria-label', `남은 사과 ${h}개`);
+    prevLives = h;
+
+    $('modeSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === S.mode)));
+    const lockDiff = run && runStarted();
+    $('diffSeg').querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.d === S.diff));
+      b.disabled = lockDiff && b.dataset.d !== S.diff;
+    });
+    $('lockNote').hidden = !lockDiff;
+    $('lbSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.d === S.lbDiff)));
+
+    if (run) {
+      $('info').innerHTML = `레벨 ${S.run.level} <small>· 클리어 ${S.run.cleared}</small>`;
+    } else {
+      const done = (cleared[S.diff] || []).includes(S.practice.level);
+      $('info').innerHTML = `<button id="prevLv" aria-label="이전 레벨" ${S.practice.level <= 1 ? 'disabled' : ''}>‹</button>
+        레벨 ${S.practice.level}${done ? ' <span class="check" aria-label="클리어">✓</span>' : ''}
+        <button id="nextLv" aria-label="다음 레벨" ${S.practice.level >= MAX_LEVEL ? 'disabled' : ''}>›</button>`;
+      $('prevLv').onclick = () => loadPractice(S.diff, S.practice.level - 1);
+      $('nextLv').onclick = () => loadPractice(S.diff, S.practice.level + 1);
+    }
+
+    const playing = S.phase === 'play';
+    $('undoBtn').disabled = !S.history.length || !playing;
+    $('hintBtn').disabled = !playing || (run && S.run.apples <= 1);
+    $('hintBtn').textContent = run ? '힌트 (사과 1개)' : '힌트';
+    $('restartBtn').textContent = run ? '보드 비우기' : '다시 시작';
+    $('restartBtn').disabled = run ? !playing : false;
+    $('quitBtn').hidden = !run;
+    $('quitBtn').disabled = !runActive() || !runStarted();
+    boardwrap.classList.toggle('veiled', S.phase === 'ready');
+    tickTimer();
+    if (pendingFx) { const fx = pendingFx; pendingFx = null; playQuills(fx); }
+  }
+
+  function tickTimer() {
+    const ms = S.mode === 'run' && S.run ? S.run.totalMs + (S.phase === 'between' || S.phase === 'over' ? 0 : clockMs()) : clockMs();
+    $('timer').textContent = fmt(ms);
+  }
+
+  function showOverlay(html) { overlay.classList.remove('peek'); overlay.innerHTML = `<div class="card">${html}</div>`; overlay.hidden = false; }
+  function hideOverlay() { overlay.hidden = true; overlay.innerHTML = ''; overlay.classList.remove('peek'); boardwrap.classList.remove('failed'); }
+
+  // After a loss: mark the fatal cell, show where the hedgehogs really were, shake the board.
+  function revealFailure(fatal, shake = true) {
+    const { N, sol } = S.P;
+    for (let r = 0; r < N; r++) {
+      const i = r * N + sol[r], b = board.children[i];
+      if (S.cells[i] !== 2 && !b.querySelector('.ghost')) b.insertAdjacentHTML('beforeend', '<svg class="ghost" aria-hidden="true"><use href="#hog"/></svg>');
+    }
+    if (fatal >= 0) board.children[fatal].classList.add('fatal');
+    if (shake) { boardwrap.classList.remove('failed'); void boardwrap.offsetWidth; boardwrap.classList.add('failed'); }
+  }
+  // "정답 보기" shrinks the result card so the revealed board can be seen; pressing again brings the card back.
+  function wirePeek() {
+    const btn = $('ovPeek'); if (!btn) return;
+    btn.onclick = () => {
+      const on = overlay.classList.toggle('peek');
+      btn.textContent = on ? '결과 보기' : '정답 보기';
+    };
+  }
+  const FAIL_DELAY = 1400;
+  const emptyApples = `<div class="apples" aria-hidden="true">${'<svg><use href="#apple"/></svg>'.repeat(APPLES)}</div>`;
+
+  function showReady(resume) {
+    const r = S.run, d = DIFFS.find(x => x.id === r.diff);
+    showOverlay(resume
+      ? `<h2>이어서 도전하기</h2><p>${d.label} ${d.n}×${d.n} · 레벨 ${r.level} · 사과 ${r.apples}개</p>
+         <div class="row"><button class="btn primary" id="ovGo">계속하기</button></div>`
+      : `<svg aria-hidden="true"><use href="#hog"/></svg><h2>${d.label} 도전</h2>
+         <p>사과 ${APPLES}개로 몇 레벨까지 갈 수 있을까요? 시작하면 시간이 흘러요.</p>
+         <div class="row"><button class="btn primary" id="ovGo">시작</button></div>`);
+    $('ovGo').onclick = beginLevel; $('ovGo').focus({ preventScroll: true });
+  }
+
+  function showBetween(levelMs, clearedLevel) {
+    const r = S.run;
+    showOverlay(`<svg aria-hidden="true"><use href="#hog"/></svg>
+      <h2>레벨 ${clearedLevel} 클리어!</h2>
+      <p>${fmt(levelMs)} · 누적 ${fmt(r.totalMs)} · 사과 ${r.apples}개</p>
+      <div class="row"><button class="btn primary" id="ovNext">다음 레벨</button></div>`);
+    $('ovNext').onclick = () => { loadRunLevel(); beginLevel(); };
+    $('ovNext').focus({ preventScroll: true });
+  }
+
+  function showOver() {
+    const r = S.run, d = DIFFS.find(x => x.id === r.diff), res = S.lastResult, failed = r.endReason !== 'quit';
+    showOverlay(`${failed ? emptyApples : ''}
+      <h2 class="${failed ? 'fail' : ''}">${failed ? `레벨 ${r.level}에서 사과를 다 썼어요` : '도전을 끝냈어요'}</h2>
+      <p>${d.label} ${d.n}×${d.n} 도전 결과</p>
+      <p class="big">${r.cleared}레벨 클리어 · ${fmt(r.totalMs)}</p>
+      <div class="row"><button class="btn primary" id="ovNew">새 도전</button><button class="btn" id="ovLb">리더보드</button>${failed ? '<button class="btn" id="ovPeek">정답 보기</button>' : ''}</div>`);
+    $('ovNew').onclick = () => { S.lastResult = null; newRun(S.diff); };
+    $('ovLb').onclick = () => openLB();
+    wirePeek();
+    if (r.cleared > 0 && !r.submitted && !S.lastResult) trySubmit();
+    $('ovNew').focus({ preventScroll: true });
+  }
+
+  function showPracticeEnd(won) {
+    showOverlay(won
+      ? `<svg aria-hidden="true"><use href="#hog"/></svg><h2>모두 자리를 찾았어요!</h2>
+         <p>${fmt(clockMs())} · 남은 사과 ${S.practice.hearts}개${S.practice.hints ? ` · 힌트 ${S.practice.hints}번` : ''}</p>
+         <div class="row"><button class="btn primary" id="ovGo">${S.practice.level < MAX_LEVEL ? '다음 레벨' : '처음 레벨로'}</button></div>`
+      : `${emptyApples}<h2 class="fail">사과를 다 썼어요</h2><p>흐린 고슴도치가 정답 자리예요.</p>
+         <div class="row"><button class="btn primary" id="ovGo">다시 도전</button><button class="btn" id="ovPeek">정답 보기</button></div>`);
+    $('ovGo').onclick = () => loadPractice(S.diff, won ? (S.practice.level < MAX_LEVEL ? S.practice.level + 1 : 1) : S.practice.level);
+    if (!won) wirePeek();
+    $('ovGo').focus({ preventScroll: true });
+  }
+
+  // ---------- moves ----------
+  const pushHistory = () => {
+    if (S.mode === 'run' && S.run) S.run.moved = true;
+    S.history.push(S.cells.slice()); if (S.history.length > 200) S.history.shift();
+  };
+  const playing = () => S.phase === 'play';
+
+  function autoMark(i) {
+    if (!$('autoX').checked) return;
+    const { N, reg } = S.P, r = Math.floor(i / N), c = i % N;
+    for (let j = 0; j < N * N; j++) {
+      if (S.cells[j] !== 0) continue;
+      const rj = Math.floor(j / N), cj = j % N;
+      if (rj === r || cj === c || reg[j] === reg[i] || (Math.abs(rj - r) <= 1 && Math.abs(cj - c) <= 1)) S.cells[j] = 1;
+    }
+  }
+
+  // Auto-mark around a newly placed hedgehog and queue the quill animation for the next render.
+  let pendingFx = null;
+  function markFrom(i) {
+    if (!$('autoX').checked) return;
+    const before = S.cells.slice();
+    autoMark(i);
+    pendingFx = { i, newly: S.cells.reduce((a, v, j) => (before[j] === 0 && v === 1 && a.push(j), a), []) };
+  }
+
+  const QUILL_MS_PER_CELL = 55;
+  const DIRS = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  function playQuills({ i, newly }) {
+    const N = S.P.N, r0 = Math.floor(i / N), c0 = i % N;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // × marks on the spike lines appear as the spike reaches them; same-region marks land last.
+    for (const j of newly) {
+      const dr = Math.floor(j / N) - r0, dc = j % N - c0, b = board.children[j];
+      const onLine = dr === 0 || dc === 0 || (Math.abs(dr) <= 1 && Math.abs(dc) <= 1);
+      const dist = onLine ? Math.max(Math.abs(dr), Math.abs(dc)) : Math.ceil(N / 2) + 1;
+      b.style.setProperty('--d', reduce ? '0ms' : `${dist * QUILL_MS_PER_CELL}ms`);
+      b.classList.remove('stab'); void b.offsetWidth; b.classList.add('stab');
+      setTimeout(() => b.classList.remove('stab'), dist * QUILL_MS_PER_CELL + 600);
+    }
+    if (reduce) return;
+    const fx = $('fx'), wrap = boardwrap.getBoundingClientRect(), cr = board.children[i].getBoundingClientRect();
+    const cx = cr.left - wrap.left + cr.width / 2, cy = cr.top - wrap.top + cr.height / 2, cell = cr.width;
+    for (const [dr, dc] of DIRS) {
+      const diag = dr && dc;
+      const toEdge = Math.min(dr > 0 ? N - 1 - r0 : dr < 0 ? r0 : Infinity, dc > 0 ? N - 1 - c0 : dc < 0 ? c0 : Infinity);
+      const steps = diag ? Math.min(1, toEdge) : toEdge;
+      if (steps <= 0) continue;
+      const angle = Math.atan2(dr, dc) * 180 / Math.PI;
+      const start = cell * 0.25, end = steps * cell * (diag ? Math.SQRT2 : 1);
+      const q = document.createElement('div'); q.className = 'quill'; fx.appendChild(q);
+      const at = d => `translate(${cx}px, ${cy}px) rotate(${angle}deg) translateX(${d}px)`;
+      q.animate([
+        { transform: at(start), opacity: 1 },
+        { transform: at(end - 6), opacity: 1, offset: .9 },
+        { transform: at(end), opacity: 0 },
+      ], { duration: steps * QUILL_MS_PER_CELL + 40, easing: 'linear' }).onfinish = () => q.remove();
+    }
+  }
+
+  // Idle volleys: every few seconds a random hedgehog on the board puffs up and shoots again (visual only).
+  function volley() {
+    if (document.hidden || S.phase !== 'play' || !S.P) return;
+    const hogs = S.cells.reduce((a, v, j) => (v === 2 && a.push(j), a), []);
+    if (!hogs.length) return;
+    const i = hogs[Math.floor(Math.random() * hogs.length)], b = board.children[i];
+    b.classList.remove('puff'); void b.offsetWidth; b.classList.add('puff');
+    setTimeout(() => b.classList.remove('puff'), 400);
+    playQuills({ i, newly: [] });
+  }
+  (function scheduleVolley() {
+    setTimeout(() => { volley(); scheduleVolley(); }, 3000 + Math.random() * 3000);
+  })();
+
+  function loseApple() {
+    if (S.mode === 'run') S.run.apples--; else S.practice.hearts--;
+  }
+
+  function place(i) {
+    const { N, sol } = S.P;
+    if (sol[Math.floor(i / N)] === i % N) {
+      pushHistory(); S.cells[i] = 2; markFrom(i); checkWin(); return;
+    }
+    loseApple(); S.cells[i] = 1;
+    const b = board.children[i]; b.classList.remove('ouch'); void b.offsetWidth; b.classList.add('ouch');
+    const left = lives();
+    toast(left > 0 ? '따끔! 여긴 자리가 아니에요' : '따끔! 마지막 사과를 잃었어요');
+    if (left <= 0) {
+      if (S.mode === 'run') endRun('apples', i);
+      else {
+        clockPause(); S.phase = 'lost';
+        render(); revealFailure(i);
+        setTimeout(() => { if (S.phase === 'lost' && S.mode === 'practice') showPracticeEnd(false); }, FAIL_DELAY);
+      }
+    }
+  }
+
+  // Single tap: empty → ×, × or hedgehog → empty. Double tap: place a hedgehog.
+  const DOUBLE_MS = 350;
+  let lastTap = { i: -1, t: 0 };
+  function tap(i) {
+    if (!playing()) return;
+    const now = performance.now();
+    if (lastTap.i === i && now - lastTap.t < DOUBLE_MS) {
+      lastTap = { i: -1, t: 0 };
+      S.cells = S.history.pop(); // undo the first tap of the pair
+      if (S.cells[i] !== 2) place(i);
+      render(); saveIfRun();
+      return;
+    }
+    lastTap = { i, t: now };
+    pushHistory();
+    S.cells[i] = S.cells[i] === 0 ? 1 : 0;
+    render(); saveIfRun();
+  }
+  const saveIfRun = () => { if (S.mode === 'run' && runActive()) saveRun(); };
+
+  function checkWin() {
+    if (S.cells.filter(v => v === 2).length !== S.P.N) return;
+    clockPause();
+    if (S.mode === 'run') {
+      const levelMs = clockMs(), clearedLevel = S.run.level;
+      S.run.totalMs += levelMs; S.run.cleared++; S.run.level++;
+      S.phase = 'between';
+      clockReset();
+      saveRun(); render(); showBetween(levelMs, clearedLevel);
+    } else {
+      S.phase = 'won';
+      const list = cleared[S.diff] || [];
+      if (!list.includes(S.practice.level)) { cleared[S.diff] = [...list, S.practice.level]; store.set('hedgedoku.cleared', cleared); }
+      render(); showPracticeEnd(true);
+    }
+  }
+
+  function endRun(reason, fatal = -1) {
+    clockPause();
+    const r = S.run;
+    r.finished = true; r.endReason = reason; S.phase = 'over';
+    saveRun(); render();
+    S.lastResult = r.cleared > 0 ? null : { ok: false, msg: '클리어한 레벨이 없어서 기록은 남지 않아요.' };
+    if (r.cleared > 0) trySubmit();
+    if (reason === 'apples') {
+      revealFailure(fatal);
+      const runRef = r;
+      setTimeout(() => { if (S.run === runRef && S.mode === 'run' && S.phase === 'over') { showOver(); openLB(); } }, FAIL_DELAY);
+    } else { showOver(); openLB(); }
+  }
+
+  function hint() {
+    if (!playing()) return;
+    if (S.mode === 'run') { if (S.run.apples <= 1) return; S.run.apples--; S.run.hints++; }
+    else S.practice.hints++;
+    const { N, reg, sol } = S.P;
+    // the unsolved region with the fewest open cells
+    let best = -1, bestOpen = Infinity;
+    for (let r = 0; r < N; r++) {
+      const i = r * N + sol[r];
+      if (S.cells[i] === 2) continue;
+      const open = S.cells.filter((v, j) => reg[j] === reg[i] && v === 0).length;
+      if (open < bestOpen) { bestOpen = open; best = i; }
+    }
+    if (best < 0) return;
+    pushHistory();
+    S.cells[best] = 2; markFrom(best);
+    render();
+    const b = board.children[best]; b.classList.remove('hint'); void b.offsetWidth; b.classList.add('hint');
+    checkWin(); saveIfRun();
+  }
+
+  // ---------- input ----------
+  // Cell index under a viewport point, from the board's geometry (-1 outside the board).
+  const cellFromPoint = (x, y) => {
+    const N = S.P.N, r = board.getBoundingClientRect();
+    const row = Math.floor((y - r.top) / r.height * N), col = Math.floor((x - r.left) / r.width * N);
+    return row >= 0 && row < N && col >= 0 && col < N ? row * N + col : -1;
+  };
+  let press = null;
+  board.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.cell'); if (!b || !playing()) return;
+    const i = +b.dataset.i;
+    // The first cell decides what the drag does: from an empty cell it paints ×, from a × it erases ×.
+    press = { i, last: i, moved: false, drag: S.cells[i] === 0 ? 'mark' : S.cells[i] === 1 ? 'erase' : null };
+    board.setPointerCapture(e.pointerId);
+  });
+  board.addEventListener('pointermove', e => {
+    if (!press) return;
+    const N = S.P.N, [from, to] = press.drag === 'mark' ? [0, 1] : [1, 0];
+    let changed = false;
+    // A fast drag can jump several cells between events: use every coalesced sample
+    // and fill in the cells along the straight line between consecutive samples.
+    for (const ev of e.getCoalescedEvents?.() ?? [e]) {
+      const j = cellFromPoint(ev.clientX, ev.clientY);
+      if (j < 0 || j === press.last) continue;
+      if (!press.drag) { press.moved = true; press.last = j; continue; }
+      if (!press.moved) { press.moved = true; pushHistory(); S.cells[press.i] = to; changed = true; }
+      const r0 = Math.floor(press.last / N), c0 = press.last % N, r1 = Math.floor(j / N), c1 = j % N;
+      const steps = Math.max(Math.abs(r1 - r0), Math.abs(c1 - c0));
+      for (let k = 1; k <= steps; k++) {
+        const idx = Math.round(r0 + (r1 - r0) * k / steps) * N + Math.round(c0 + (c1 - c0) * k / steps);
+        if (S.cells[idx] === from) { S.cells[idx] = to; changed = true; }
+      }
+      press.last = j;
+    }
+    if (changed) render();
+  });
+  board.addEventListener('pointerup', () => {
+    if (press && !press.moved) tap(press.i);
+    else if (press) { lastTap = { i: -1, t: 0 }; saveIfRun(); }
+    press = null;
+  });
+  board.addEventListener('pointercancel', () => { press = null; });
+  board.addEventListener('click', e => { if (e.detail === 0) { const b = e.target.closest('.cell'); if (b) tap(+b.dataset.i); } });
+  board.addEventListener('keydown', e => {
+    const b = e.target.closest('.cell'); if (!b) return;
+    const N = S.P.N, i = +b.dataset.i;
+    const mv = { ArrowUp: -N, ArrowDown: N, ArrowLeft: -1, ArrowRight: 1 }[e.key];
+    if (mv === undefined) return;
+    const j = i + mv;
+    if (j < 0 || j >= N * N || (Math.abs(mv) === 1 && Math.floor(j / N) !== Math.floor(i / N))) return;
+    e.preventDefault(); board.children[j].focus();
+  });
+
+  $('diffSeg').innerHTML = DIFFS.map(d => `<button data-d="${d.id}" aria-pressed="false">${d.label} ${d.n}×${d.n}</button>`).join('');
+  $('lbSeg').innerHTML = DIFFS.map(d => `<button data-d="${d.id}" aria-pressed="false">${d.label}</button>`).join('');
+  $('diffSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || b.disabled || b.dataset.d === S.diff) return;
+    if (S.mode === 'run') { if (!runStarted()) newRun(b.dataset.d); }
+    else loadPractice(b.dataset.d, 1);
+    S.lbDiff = b.dataset.d; render();
+  });
+  $('modeSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || b.dataset.m === S.mode) return;
+    if (b.dataset.m === 'practice') {
+      leaveRunMode();
+      const p = store.get('hedgedoku.practice', null);
+      loadPractice(p && DIFF_IDS.includes(p.diff) ? p.diff : S.diff, p?.level >= 1 && p.level <= MAX_LEVEL ? p.level : 1);
+    } else enterRunMode();
+  });
+  $('lbSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { S.lbDiff = b.dataset.d; render(); renderLB(); maybePlayRankAnim(); } });
+  $('undoBtn').onclick = () => { if (!S.history.length || !playing()) return; S.cells = S.history.pop(); render(); saveIfRun(); };
+  $('hintBtn').onclick = hint;
+  $('restartBtn').onclick = () => {
+    if (S.mode === 'run') { if (!playing()) return; 
+      // Keep hedgehogs and the × marks they imply; clear only the player's own marks.
+      pushHistory(); S.cells = S.cells.map(v => v === 2 ? 2 : 0);
+      S.cells.forEach((v, i) => { if (v === 2) autoMark(i); });
+      render(); saveRun();
+    }
+    else loadPractice(S.diff, S.practice.level);
+  };
+  // "도전 끝내기" asks in a modal; the clock is paused while it is open.
+  const quitModal = $('quitModal');
+  let quitResume = false;
+  function openQuit() {
+    if (!runActive()) return;
+    const r = S.run;
+    quitResume = S.phase === 'play';
+    if (quitResume) clockPause();
+    $('quitBody').textContent = r.cleared > 0
+      ? `${r.cleared}레벨 클리어 · ${fmt(r.totalMs)} 기록으로 끝나요.${quitResume ? ` 지금 풀고 있는 레벨 ${r.level}은 기록에 들어가지 않아요.` : ''}`
+      : '아직 클리어한 레벨이 없어서 기록은 남지 않아요.';
+    quitModal.hidden = false;
+    $('quitCancel').focus();
+  }
+  function closeQuit(confirmed) {
+    if (quitModal.hidden) return;
+    quitModal.hidden = true;
+    if (confirmed) { endRun('quit'); return; }
+    if (quitResume && S.phase === 'play') clockStart();
+    $('quitBtn').focus({ preventScroll: true });
+  }
+  $('quitBtn').onclick = openQuit;
+  $('quitCancel').onclick = () => closeQuit(false);
+  $('quitConfirm').onclick = () => closeQuit(true);
+  quitModal.addEventListener('click', e => { if (e.target === quitModal) closeQuit(false); });
+  quitModal.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeQuit(false); }
+    if (e.key === 'Tab') { // keep focus on the two buttons
+      e.preventDefault();
+      (document.activeElement === $('quitCancel') ? $('quitConfirm') : $('quitCancel')).focus();
+    }
+  });
+  $('autoX').addEventListener('change', () => store.set('hedgedoku.autoX', $('autoX').checked));
+  $('autoX').checked = store.get('hedgedoku.autoX', true);
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+  }
+
+  setInterval(tickTimer, 500);
+  addEventListener('pagehide', () => { if (S.mode === 'run') leaveRunMode(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && S.mode === 'run' && runActive()) saveRun(); });
+
+  // ---------- leaderboard (Supabase) ----------
+  // Reads the public `leaderboard` view; writes only through the `submit_score` / `set_nickname` functions.
+  // Each browser gets a random player id + secret; the secret proves ownership of that id's records.
+  const CFG = window.HEDGEDOKU_CONFIG || {};
+  const SB_URL = String(CFG.supabaseUrl || '').replace(/\/+$/, '');
+  const SB_KEY = String(CFG.supabaseAnonKey || '');
+  const lbEnabled = /^https:\/\//.test(SB_URL) && SB_KEY.length > 20;
+  const NICK_MAX = 12, LB_TOP = 20;
+
+  const randomHex = bytes => Array.from(crypto.getRandomValues(new Uint8Array(bytes)), b => b.toString(16).padStart(2, '0')).join('');
+  const uuid = () => crypto.randomUUID ? crypto.randomUUID()
+    : (h => `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-${'89ab'[parseInt(h[16], 16) & 3]}${h.slice(17, 20)}-${h.slice(20, 32)}`)(randomHex(16));
+  let player = store.get('hedgedoku.player', null);
+  if (!player || !/^[0-9a-f-]{36}$/.test(player.id) || !/^[0-9a-f]{64}$/.test(player.secret)) {
+    player = { id: uuid(), secret: randomHex(32) };
+    store.set('hedgedoku.player', player);
+  }
+  let nickname = store.get('hedgedoku.nick', '');
+  const cleanNick = s => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, NICK_MAX);
+
+  const ERRORS = {
+    bad_secret: '이 기기의 플레이어 정보가 맞지 않아 기록을 저장하지 못했어요.',
+    bad_nickname: '닉네임은 1~12자로 정해 주세요.',
+    bad_diff: '알 수 없는 난이도라 기록을 저장하지 못했어요.',
+    bad_score: '기록 값이 올바르지 않아 저장하지 못했어요.',
+  };
+  async function sb(path, { method = 'GET', body, headers = {} } = {}) {
+    const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
+      method,
+      // Legacy anon keys are JWTs and also go in Authorization; new "sb_publishable_" keys only need apikey.
+      headers: { apikey: SB_KEY, ...(SB_KEY.startsWith('eyJ') ? { Authorization: `Bearer ${SB_KEY}` } : {}), 'Content-Type': 'application/json', ...headers },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let msg = '';
+      try { msg = (await res.json()).message || ''; } catch {}
+      const err = new Error(msg || `HTTP ${res.status}`); err.code = msg; throw err;
+    }
+    return res;
+  }
+  const errorText = e => ERRORS[e?.code] || (e instanceof TypeError ? '인터넷 연결을 확인해 주세요.' : '리더보드 서버에 문제가 있어 기록을 저장하지 못했어요.');
+
+  // lbCache[diff] = { rows: [{player_id, nickname, levels, time_ms}], mine, myRank }
+  const lbCache = {};
+  let lbState = lbEnabled ? 'loading' : 'off', lbToken = 0, lbLoadedAt = 0;
+
+  async function loadLB(diff) {
+    const q = `diff=eq.${diff}`;
+    const top = await (await sb(`leaderboard?select=player_id,nickname,levels,time_ms&${q}&order=levels.desc,time_ms.asc,updated_at.asc&limit=${LB_TOP}`)).json();
+    let mine = top.find(r => r.player_id === player.id) || null, myRank = mine ? top.indexOf(mine) + 1 : 0;
+    if (!mine) {
+      const me = await (await sb(`leaderboard?select=player_id,nickname,levels,time_ms&${q}&player_id=eq.${player.id}`)).json();
+      if (me[0]) {
+        mine = me[0];
+        const ahead = await sb(`leaderboard?select=player_id&${q}&or=(levels.gt.${mine.levels},and(levels.eq.${mine.levels},time_ms.lt.${mine.time_ms}))`,
+          { headers: { Prefer: 'count=exact', Range: '0-0' } });
+        const total = Number((ahead.headers.get('content-range') || '').split('/')[1]);
+        myRank = Number.isFinite(total) ? total + 1 : 0;
+      }
+    }
+    lbCache[diff] = { rows: top, mine, myRank };
+  }
+
+  async function refreshLB(diff = S.lbDiff) {
+    if (!lbEnabled) { renderLB(); return; }
+    const token = ++lbToken;
+    try {
+      await loadLB(diff);
+      if (token !== lbToken) return;
+      lbState = 'ready'; lbLoadedAt = Date.now();
+    } catch (e) {
+      if (token !== lbToken) return;
+      lbState = lbCache[diff] ? 'ready' : 'error';
+      $('lbStatus').textContent = e instanceof TypeError ? '오프라인이에요. 연결되면 리더보드를 다시 불러올게요.' : '리더보드를 불러오지 못했어요.';
+    }
+    renderLB();
+  }
+
+  async function submitScore(diff, levels, timeMs) {
+    if (!lbEnabled) return { ok: false, msg: '리더보드가 아직 설정되지 않아 기록은 이 기기에만 남아요.' };
+    if (!nickname) return { ok: false, needNick: true, msg: '닉네임을 정하면 리더보드에 올라가요.' };
+    try {
+      const res = await (await sb('rpc/submit_score', {
+        method: 'POST',
+        body: { p_player: player.id, p_secret: player.secret, p_nickname: nickname, p_diff: diff, p_levels: levels, p_time_ms: Math.round(timeMs) },
+      })).json();
+      await refreshLB(diff);
+      if (res?.status === 'not_better') {
+        return { ok: true, done: true, status: 'not_better', msg: `개인 최고 기록(${res.levels}레벨 · ${fmt(res.time_ms)})은 넘지 못했어요.` };
+      }
+      const rank = lbCache[diff]?.myRank;
+      return { ok: true, done: true, status: 'new_best', msg: rank ? `리더보드에 등록했어요 · ${rank}위` : '리더보드에 등록했어요' };
+    } catch (e) {
+      const retry = !(e?.code in ERRORS) || e.code === 'bad_nickname';
+      return { ok: false, retry, needNick: e?.code === 'bad_nickname', msg: errorText(e) };
+    }
+  }
+
+  // ---------- leaderboard window ----------
+  // Before the online leaderboard is configured, the window ranks this device's own challenge results instead,
+  // so a finished run is always seen entering the board.
+  const LOCAL_KEY = 'hedgedoku.localBoard', LOCAL_KEEP = 100;
+  let localBoard = store.get(LOCAL_KEY, {});
+  if (!localBoard || typeof localBoard !== 'object') localBoard = {};
+  const meId = () => lbEnabled ? player.id : (S.run?.localId || '');
+  const byRank = (a, b) => b.levels - a.levels || a.timeMs - b.timeMs || a.at - b.at;
+  const localRuns = diff => (Array.isArray(localBoard[diff]) ? localBoard[diff] : [])
+    .filter(x => x && typeof x.id === 'string' && Number.isFinite(x.levels) && Number.isFinite(x.timeMs) && Number.isFinite(x.at))
+    .sort(byRank);
+  const localName = x => {
+    const d = new Date(x.at), p2 = n => String(n).padStart(2, '0');
+    return `${nickname || '나'} · ${d.getMonth() + 1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  };
+  function localEntries(diff) {
+    const runs = localRuns(diff), cur = S.run?.localId;
+    const row = (x, pos) => ({ id: x.id, name: localName(x), levels: x.levels, timeMs: x.timeMs, pos });
+    const list = runs.slice(0, LB_TOP).map((x, k) => row(x, k + 1));
+    const idx = cur ? runs.findIndex(x => x.id === cur) : -1;
+    if (idx >= LB_TOP) list.push(null, row(runs[idx], idx + 1));
+    return { list, myRank: idx + 1 };
+  }
+  function addLocalRun(r) {
+    const rec = { id: 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), levels: r.cleared, timeMs: Math.round(r.totalMs), at: Date.now() };
+    r.localId = rec.id;
+    // keep the best LOCAL_KEEP runs per difficulty
+    localBoard[r.diff] = [...localRuns(r.diff), rec].sort(byRank).slice(0, LOCAL_KEEP);
+    if (!localBoard[r.diff].some(x => x.id === rec.id)) localBoard[r.diff].push(rec);
+    store.set(LOCAL_KEY, localBoard);
+  }
+  const autoNick = () => `고슴도치${Math.floor(1000 + Math.random() * 9000)}`;
+
+  // Entries are the rows the table shows: {id, name, levels, timeMs, pos}, with null for the "⋯" gap.
+  function entriesFor(diff) {
+    if (!lbEnabled) return localEntries(diff);
+    const data = lbCache[diff];
+    if (!data) return null;
+    const list = data.rows.map((r, k) => ({ id: r.player_id, name: r.nickname, levels: Number(r.levels) | 0, timeMs: Number(r.time_ms) || 0, pos: k + 1 }));
+    if (data.mine && data.myRank > LB_TOP) {
+      const m = data.mine;
+      list.push(null, { id: m.player_id, name: m.nickname, levels: Number(m.levels) | 0, timeMs: Number(m.time_ms) || 0, pos: data.myRank });
+    }
+    return { list, myRank: data.myRank || 0 };
+  }
+
+  // While a submission is in flight the table keeps showing the "before" state, so the rank change can be animated.
+  let hold = null;          // { diff, entries }
+  let pendingAnim = null;   // { diff, before, after, status }
+
+  async function trySubmit() {
+    const r = S.run;
+    if (!r || !r.finished || r.cleared <= 0 || r.submitted) return;
+    if (!lbEnabled) {
+      const before = localEntries(r.diff);
+      addLocalRun(r);
+      const after = localEntries(r.diff);
+      r.submitted = true; saveRun();
+      S.lastResult = { ok: true, done: true, msg: `이 기기 기록에 등록했어요 · ${after.myRank}위` };
+      pendingAnim = { diff: r.diff, before, after, status: 'local' };
+      renderResult(); maybePlayRankAnim();
+      return;
+    }
+    S.lastResult = { ok: false, msg: '기록 저장 중…' }; renderResult();
+    // No nickname yet: register right away under a temporary one (it can be changed in the window).
+    let autoNamed = false;
+    if (!nickname) { setNickname(autoNick(), false); autoNamed = true; }
+    let before = null;
+    {
+      // Snapshot the board before submitting; if that lookup fails, skip the animation rather than guess.
+      try { await loadLB(r.diff); before = entriesFor(r.diff); } catch {}
+      if (before) hold = { diff: r.diff, entries: before };
+    }
+    const res = await submitScore(r.diff, r.cleared, r.totalMs);
+    if (S.run !== r) { hold = null; return; }
+    if (res.done && autoNamed) res.msg += ` · 닉네임 "${nickname}"은 아래에서 바꿀 수 있어요`;
+    S.lastResult = res;
+    if (res.done) {
+      r.submitted = true; saveRun();
+      const after = entriesFor(r.diff);
+      if (before && after) pendingAnim = { diff: r.diff, before, after, status: res.status };
+    } else hold = null;
+    renderResult();
+    if (!pendingAnim) renderLB();
+    maybePlayRankAnim();
+  }
+
+  // ----- window open / close -----
+  const lbModal = $('lbModal');
+  let lbOpener = null;
+  function openLB() {
+    const showResult = S.mode === 'run' && S.run?.finished;
+    if (showResult) S.lbDiff = S.run.diff;
+    lbOpener = document.activeElement;
+    lbModal.hidden = false;
+    $('lbPanel').scrollTop = 0;
+    render(); renderResult(); renderLB();
+    if (lbEnabled && Date.now() - lbLoadedAt > 15000 && !hold) refreshLB();
+    $('lbClose').focus({ preventScroll: true });
+    maybePlayRankAnim();
+  }
+  function closeLB() {
+    if (lbModal.hidden) return;
+    lbModal.hidden = true;
+    lbOpener?.focus?.({ preventScroll: true });
+  }
+  $('lbOpen').onclick = openLB;
+  $('lbClose').onclick = closeLB;
+  lbModal.addEventListener('click', e => { if (e.target === lbModal) closeLB(); });
+  lbModal.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeLB(); return; }
+    if (e.key !== 'Tab') return;
+    const f = [...lbModal.querySelectorAll('button:not([disabled]), input, [tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
+
+  // ----- result block at the top of the window (only after a challenge ends) -----
+  function renderResult() {
+    const box = $('lbResult');
+    const r = S.run;
+    if (!(S.mode === 'run' && r?.finished)) { box.hidden = true; return; }
+    const d = DIFFS.find(x => x.id === r.diff);
+    box.hidden = false;
+    if (!box.querySelector('#saveArea')) {
+      box.innerHTML = `<div class="resHead"></div><div class="resStats"></div><div class="rankMove" id="rankMove" aria-live="polite"></div><div id="saveArea"></div>`;
+    }
+    box.querySelector('.resHead').textContent = `이번 도전 · ${d.label} ${d.n}×${d.n}`;
+    box.querySelector('.resStats').textContent = `${r.cleared}레벨 클리어 · ${fmt(r.totalMs)}`;
+    renderSaveArea();
+  }
+
+  // Save message with a nickname form or a retry button when needed.
+  function renderSaveArea() {
+    const el = $('saveArea'); if (!el) return;
+    const res = S.lastResult;
+    el.replaceChildren();
+    if (!res) return;
+    const p = document.createElement('p');
+    p.className = 'save' + (res.ok ? ' ok' : ''); p.textContent = res.msg;
+    el.appendChild(p);
+    if (res.needNick) {
+      const f = document.createElement('form'); f.className = 'nickForm';
+      f.innerHTML = `<input id="ovNick" maxlength="${NICK_MAX}" autocomplete="nickname" placeholder="닉네임 (1~12자)" aria-label="닉네임"><button class="btn primary" type="submit">등록</button>`;
+      f.onsubmit = e => {
+        e.preventDefault();
+        const v = cleanNick($('ovNick').value);
+        if (!v) { $('ovNick').focus(); return; }
+        setNickname(v, false); trySubmit();
+      };
+      el.appendChild(f);
+      $('ovNick').value = nickname;
+      if (!lbModal.hidden) $('ovNick').focus({ preventScroll: true });
+    } else if (res.retry) {
+      const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = '다시 시도';
+      b.onclick = trySubmit; el.appendChild(b);
+    }
+  }
+
+  async function setNickname(v, syncServer = true) {
+    nickname = v; store.set('hedgedoku.nick', v); $('nickInput').value = v;
+    if (!syncServer || !lbEnabled) { if (!lbEnabled && !hold && !pendingAnim) renderLB(); return { ok: true }; }
+    try {
+      await sb('rpc/set_nickname', { method: 'POST', body: { p_player: player.id, p_secret: player.secret, p_nickname: v } });
+      refreshLB();
+      return { ok: true };
+    } catch (e) { return { ok: false, msg: errorText(e) }; }
+  }
+
+  $('nickInput').value = nickname;
+  $('nickForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = cleanNick($('nickInput').value), msg = $('nickMsg');
+    if (!v) { msg.textContent = '1~12자로 정해 주세요.'; return; }
+    msg.textContent = '저장 중…';
+    const res = await setNickname(v);
+    msg.textContent = res.ok ? '저장했어요' : res.msg;
+    setTimeout(() => { if (msg.textContent === '저장했어요') msg.textContent = ''; }, 2000);
+  });
+
+  // ----- table -----
+  function tableOf(list) {
+    const table = document.createElement('table'); table.className = 'lbt';
+    table.innerHTML = '<thead><tr><th scope="col">순위</th><th scope="col">닉네임</th><th scope="col" class="num">레벨</th><th scope="col" class="num">누적 시간</th></tr></thead>';
+    const tb = document.createElement('tbody');
+    for (const r of list) {
+      const tr = document.createElement('tr');
+      if (!r) { tr.className = 'gap'; tr.innerHTML = '<td colspan="4">⋯</td>'; tb.appendChild(tr); continue; }
+      tr.dataset.id = r.id;
+      if (r.pos <= 3) tr.classList.add('r' + r.pos);
+      const me = r.id === meId();
+      if (me) tr.classList.add('me');
+      tr.innerHTML = `<td class="rank">${r.pos}</td><td><div class="who"><span></span></div></td>
+        <td class="num lvls">${r.levels}</td><td class="num time">${fmt(r.timeMs)}</td>`;
+      tr.querySelector('.who span').textContent = (r.name || '이름 없는 고슴도치') + (me ? ' (나)' : '');
+      tb.appendChild(tr);
+    }
+    table.appendChild(tb);
+    return table;
+  }
+
+  function renderLB() {
+    const el = $('lbBody'), diff = S.lbDiff;
+    $('lbSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.d === diff)));
+    $('lbStatus').textContent = lbEnabled ? '' : '온라인 리더보드가 설정되기 전이라 이 기기의 기록만 보여요.';
+    const held = hold && hold.diff === diff ? hold.entries : null;
+    const ent = held || entriesFor(diff);
+    if (!ent) {
+      el.innerHTML = `<p class="empty">${lbState === 'error' ? '리더보드를 불러오지 못했어요.' : '리더보드를 불러오는 중…'}</p>`;
+      if (lbState !== 'error') refreshLB(diff);
+      return;
+    }
+    if (!ent.list.length) { el.innerHTML = '<p class="empty">아직 기록이 없어요. 첫 기록의 주인공이 되어 보세요.</p>'; return; }
+    el.replaceChildren(tableOf(ent.list));
+  }
+
+  // ----- rank-change animation (FLIP: draw the old table, then slide rows to their new places) -----
+  function countTo(el, from, to, ms, show) {
+    const t0 = performance.now();
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = show(Math.round(from + (to - from) * e));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function maybePlayRankAnim() {
+    const a = pendingAnim;
+    if (!a || lbModal.hidden || S.lbDiff !== a.diff) return;
+    pendingAnim = null; hold = null;
+    playRankAnim(a);
+  }
+
+  function playRankAnim({ before, after, status }) {
+    const el = $('lbBody'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const oldRank = before.myRank, newRank = after.myRank;
+    const mv = $('rankMove');
+    const DELAY = 350, MOVE = 1100;
+
+    // Rank headline in the result block.
+    if (mv) {
+      mv.replaceChildren();
+      if (status === 'not_better') {
+        mv.innerHTML = `<span class="to"></span><span class="tag">개인 최고 기록 유지</span>`;
+        mv.querySelector('.to').textContent = newRank ? `${newRank}위` : '';
+      } else if (!oldRank) {
+        mv.innerHTML = `<span class="to"></span><span class="tag">${status === 'local' ? '이 기기 기록 순위' : '첫 등록'}</span>`;
+        const to = mv.querySelector('.to');
+        if (reduce || !newRank) to.textContent = newRank ? `${newRank}위` : '';
+        else countTo(to, Math.max(newRank + 9, (after.list.filter(Boolean).at(-1)?.pos || newRank) + 1), newRank, MOVE + DELAY, v => `${v}위`);
+      } else {
+        mv.innerHTML = `<span class="from"></span><span class="arrow">→</span><span class="to"></span><span class="tag"></span>`;
+        mv.querySelector('.from').textContent = `${oldRank}위`;
+        mv.querySelector('.tag').textContent = newRank < oldRank ? `${oldRank - newRank}계단 올라갔어요` : newRank === oldRank ? '순위 유지 · 기록 단축' : '';
+        const to = mv.querySelector('.to');
+        if (reduce) to.textContent = `${newRank}위`;
+        else countTo(to, oldRank, newRank, MOVE + DELAY, v => `${v}위`);
+      }
+    }
+
+    if (!after.list.length) { renderLB(); return; }
+    // 1) old table, measure each row's position
+    const me = meId(), oldTops = {}, oldMine = before.list.find(r => r && r.id === me);
+    let oldHeight = 0;
+    if (before.list.length && !reduce) {
+      const t = tableOf(before.list); el.replaceChildren(t);
+      t.querySelectorAll('tbody tr[data-id]').forEach(tr => { oldTops[tr.dataset.id] = tr.offsetTop; });
+      oldHeight = t.offsetHeight;
+    }
+    // 2) new table
+    const t = tableOf(after.list); el.replaceChildren(t);
+    const myTr = t.querySelector('tr.me');
+    if (myTr) {
+      myTr.scrollIntoView({ block: 'center' });
+      myTr.classList.add('flash');
+    }
+    if (reduce) return;
+    if (!oldHeight) oldHeight = t.offsetHeight;
+    const ease = 'cubic-bezier(.22, .9, .25, 1)';
+    t.querySelectorAll('tbody tr[data-id]').forEach(tr => {
+      const id = tr.dataset.id, isMe = id === me, top = tr.offsetTop;
+      const from = id in oldTops ? oldTops[id] : isMe ? oldHeight + 24 : null;
+      if (from === null) { tr.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: DELAY + MOVE * .5, fill: 'backwards' }); return; }
+      if (from === top && !isMe) return;
+      tr.animate([{ transform: `translateY(${from - top}px)` }, { transform: 'none' }],
+        { duration: isMe ? MOVE : MOVE * .8, delay: DELAY, easing: ease, fill: 'backwards' });
+    });
+    // my row's own numbers roll from the old record to the new one
+    if (myTr) {
+      const newMine = after.list.find(r => r && r.id === me);
+      const rankTd = myTr.querySelector('.rank'), lvTd = myTr.querySelector('.lvls'), tmTd = myTr.querySelector('.time');
+      if (oldMine) countTo(rankTd, oldMine.pos, newMine.pos, MOVE + DELAY, v => String(v));
+      if (oldMine && oldMine.levels !== newMine.levels) countTo(lvTd, oldMine.levels, newMine.levels, MOVE + DELAY, v => String(v));
+      if (oldMine && oldMine.timeMs !== newMine.timeMs) countTo(tmTd, oldMine.timeMs, newMine.timeMs, MOVE + DELAY, v => fmt(v));
+    }
+  }
+
+  // Keep the board fresh without hammering the server.
+  setInterval(() => { if (!document.hidden && lbEnabled) refreshLB(); }, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && lbEnabled && Date.now() - lbLoadedAt > 15000) refreshLB(); });
+  addEventListener('online', () => {
+    if (!lbEnabled) return;
+    refreshLB();
+    if (S.run?.finished && S.lastResult?.retry) trySubmit();
+  });
+
+  // ---------- boot ----------
+  function start() {
+    const saved = store.get('hedgedoku.run', null);
+    if (saved?.run && DIFF_IDS.includes(saved.run.diff) && Number.isFinite(saved.run.seed)) {
+      S.run = { ...saved.run, cells: saved.cells, levelMs: saved.levelMs || 0 };
+      S.diff = S.run.diff; S.lbDiff = S.run.diff;
+      enterRunMode();
+    } else newRun('easy');
+    renderLB();
+  }
+  start();
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>
