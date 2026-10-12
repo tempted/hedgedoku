@@ -263,7 +263,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .profileBtn .pfEmoji.none { opacity: .35; filter: grayscale(1); }
 .profileBtn .pfName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 400px) { .profileBtn .pfName { display: none; } .profileBtn { padding-inline: 10px; } }
-@media (max-width: 360px) { .lbOpen .lbText { display: none; } .topRow .lbOpen { padding-inline: 10px; } }
+@media (max-width: 480px) { .lbOpen .lbText { display: none; } .topRow .lbOpen { padding-inline: 10px; } }
 
 /* Profile window */
 .profileCard { width: min(100%, 360px); align-items: stretch; text-align: left; gap: 10px; }
@@ -330,6 +330,51 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .rules .note { margin: 10px 0 0; font-size: .82rem; color: var(--muted); }
 
 .tShort { display: none; }
+/* Icon buttons (actions row, ? button) */
+.iconBtn { width: 44px; height: 40px; padding: 0; display: inline-grid; place-items: center; position: relative; flex: none; }
+.iconBtn svg { width: 22px; height: 22px; }
+.iconBtn .badge {
+  position: absolute; top: -7px; right: -8px; font-size: .68rem; line-height: 1.3; padding: 0 4px;
+  border-radius: 999px; background: var(--surface); border: 1px solid var(--grid); color: var(--ink);
+}
+.topRow .helpBtn { width: 40px; height: 38px; }
+.topRow .helpBtn svg { width: 20px; height: 20px; }
+.actions .toggle { margin-left: auto; }
+
+/* Rules window */
+.rulesCard { width: min(100%, 420px); max-height: calc(100dvh - 32px); overflow-y: auto; text-align: left; align-items: stretch; gap: 8px; }
+.rulesCard h2 { text-align: center; }
+.rulesCard h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.05rem; margin: 6px 0 0; }
+.rulesCard ol, .rulesCard ul { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 4px; }
+.rulesCard .rulesList li::marker { color: var(--accent); font-family: var(--font-display); }
+.rulesCard .iconLegend { list-style: none; padding-left: 0; }
+.rulesCard .iconLegend li { display: flex; align-items: center; gap: 10px; }
+.rulesCard .iconLegend svg { width: 20px; height: 20px; flex: none; color: var(--accent); }
+.rulesCard .note { margin: 4px 0 0; font-size: .82rem; color: var(--muted); }
+.rulesCard .row { justify-content: center; }
+
+/* Profile in the header */
+.headProfile {
+  margin-left: auto; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: 0; padding: 0; font: inherit; color: var(--ink); cursor: pointer; max-width: 6.5em;
+}
+.hpAvatar {
+  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 1.85rem; line-height: 1;
+  background: var(--surface); border: 2px solid var(--grid); transition: border-color .15s, transform .15s;
+}
+.headProfile:hover .hpAvatar { border-color: var(--accent); transform: scale(1.04); }
+.headProfile:focus-visible { outline: none; }
+.headProfile:focus-visible .hpAvatar { outline: 3px solid var(--ring); outline-offset: 2px; }
+.hpName { font-size: .75rem; color: var(--muted); max-width: 6.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 480px) {
+  .hpAvatar { width: 40px; height: 40px; font-size: 1.4rem; }
+  .hpName { font-size: .7rem; }
+}
+@media (max-width: 480px) and (max-height: 600px) {
+  .hpAvatar { width: 34px; height: 34px; font-size: 1.2rem; }
+  .hpName { font-size: .66rem; }
+}
+@media (prefers-reduced-motion: reduce) { .hpAvatar { transition: none; } }
 /* Small phones (e.g. iPhone SE): tighter spacing so the board and its buttons fit on one screen. */
 .boardwrap { width: 100%; margin-inline: auto; max-width: 100%; }
 @media (max-width: 480px) {
@@ -380,6 +425,12 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
       <circle cx="28.2" cy="59.8" r="1.1" fill="#fff"/>
       <ellipse cx="33" cy="71" rx="4.2" ry="2.6" fill="#f08f8f" opacity=".75"/>
     </symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></g></symbol>
+    <symbol id="i-hint" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V18h6v-1.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/></g></symbol>
+    <symbol id="i-erase" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L13 19"/><path d="M22 21H7"/><path d="m5 11 9 9"/></g></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></g></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22V3"/><path d="M5 4h13l-2.5 4.5L18 13H5"/></g></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></g></symbol>
     <symbol id="apple" viewBox="0 0 24 24">
       <path d="M12 7c-1.2-1-3.8-1.6-5.6.2C4.5 9.1 4.8 13 6.6 16.2 8 18.7 9.6 20.3 11 19.8c.6-.2.8-.4 1-.4s.4.2 1 .4c1.4.5 3-1.1 4.4-3.6 1.8-3.2 2.1-7.1.2-9C15.8 5.4 13.2 6 12 7z" fill="#d9483b"/>
       <path d="M12 7c0-1.6.6-3 1.6-4" stroke="#6b4423" stroke-width="1.4" fill="none" stroke-linecap="round"/>
@@ -395,6 +446,9 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
       <h1>고슴도쿠</h1>
       <p class="tagline">가시가 따가워서 서로 붙기 싫은 고슴도치들의 자리 찾기 퍼즐</p>
     </div>
+    <button class="headProfile" id="profileOpen" type="button" aria-haspopup="dialog" title="내 프로필">
+      <span class="hpAvatar" id="pfBtnEmoji" aria-hidden="true">🦔</span><span class="hpName" id="pfBtnName"></span>
+    </button>
   </header>
 
   <div class="controls">
@@ -404,9 +458,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
         <button data-m="practice" aria-pressed="false">연습</button>
       </div>
       <div class="topActions">
-        <button class="btn profileBtn" id="profileOpen" type="button" aria-haspopup="dialog">
-          <span class="pfEmoji" id="pfBtnEmoji" aria-hidden="true">🦔</span><span class="pfName" id="pfBtnName">프로필 만들기</span>
-        </button>
+        <button class="btn iconBtn helpBtn" id="rulesOpen" type="button" aria-haspopup="dialog" aria-label="규칙과 조작법" title="규칙과 조작법"><svg aria-hidden="true"><use href="#i-help"/></svg></button>
         <button class="btn lbOpen" id="lbOpen" type="button" aria-haspopup="dialog" aria-label="리더보드">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M2 21h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="currentColor"/></svg><span class="lbText">리더보드</span></button>
       </div>
@@ -428,24 +480,12 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   </div>
 
   <div class="actions">
-    <button class="btn" id="undoBtn">되돌리기</button>
-    <button class="btn" id="hintBtn">힌트</button>
-    <button class="btn" id="restartBtn">보드 비우기</button>
-    <button class="btn warn" id="quitBtn" aria-label="도전 끝내기"><span class="tLong">도전 끝내기</span><span class="tShort">끝내기</span></button>
+    <button class="btn iconBtn" id="undoBtn" aria-label="되돌리기" title="되돌리기"><svg aria-hidden="true"><use href="#i-undo"/></svg></button>
+    <button class="btn iconBtn" id="hintBtn" aria-label="힌트" title="힌트"><svg aria-hidden="true"><use href="#i-hint"/></svg></button>
+    <button class="btn iconBtn" id="restartBtn" aria-label="보드 비우기" title="보드 비우기"><svg aria-hidden="true"><use href="#i-erase"/></svg></button>
+    <button class="btn iconBtn warn" id="quitBtn" aria-label="도전 끝내기" title="도전 끝내기"><svg aria-hidden="true"><use href="#i-flag"/></svg></button>
     <label class="toggle"><input type="checkbox" id="autoX" checked> <span class="tLong">자동 × 표시</span><span class="tShort">자동 ×</span></label>
   </div>
-  <p class="howto">빈 칸을 누르면 ×, × 나 고슴도치를 누르면 지워져요. 고슴도치는 두 번 빠르게 눌러서 놓아요. 빈 칸에서 시작해 드래그하면 × 를 긋고, × 칸에서 시작해 드래그하면 × 를 지워요.</p>
-
-  <section class="rules">
-    <h2>규칙</h2>
-    <ol>
-      <li>색깔 덤불마다 고슴도치는 딱 한 마리.</li>
-      <li>같은 가로줄, 같은 세로줄에는 한 마리만.</li>
-      <li>가시가 따가워서 대각선으로도 붙어 있으면 안 돼요.</li>
-      <li>찍지 말고 추리로 풀기. 틀린 자리에 놓으면 사과를 하나 잃어요.</li>
-    </ol>
-    <p class="note">도전 모드에서는 사과가 다음 판으로 그대로 이어지고, 힌트는 사과 1개를 써요. 퍼즐은 도전할 때마다 새로 만들어지고, 모든 판은 답이 하나뿐이에요. 연습 모드는 판마다 사과가 다시 차고 기록은 남지 않아요.</p>
-  </section>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="modal" id="lbModal" role="dialog" aria-modal="true" aria-labelledby="lbTitle" hidden>
@@ -474,6 +514,33 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
       <button class="btn primary" id="pfSave" type="submit">저장</button>
     </div>
   </form>
+</div>
+<div class="modal" id="rulesModal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle" hidden>
+  <div class="card rulesCard">
+    <h2 id="rulesTitle">규칙</h2>
+    <ol class="rulesList">
+      <li>색깔 덤불마다 고슴도치는 딱 한 마리.</li>
+      <li>같은 가로줄, 같은 세로줄에는 한 마리만.</li>
+      <li>가시가 따가워서 대각선으로도 붙어 있으면 안 돼요.</li>
+      <li>찍지 말고 추리로 풀기. 틀린 자리에 놓으면 사과를 하나 잃어요.</li>
+    </ol>
+    <h3>조작</h3>
+    <ul class="howtoList">
+      <li>빈 칸 누르기: × 표시 · × 나 고슴도치 누르기: 지우기</li>
+      <li>두 번 빠르게 누르기: 고슴도치 놓기</li>
+      <li>빈 칸에서 드래그: × 긋기 · × 칸에서 드래그: × 지우기</li>
+    </ul>
+    <h3>아래 버튼</h3>
+    <ul class="iconLegend">
+      <li><svg aria-hidden="true"><use href="#i-undo"/></svg>되돌리기</li>
+      <li><svg aria-hidden="true"><use href="#i-hint"/></svg>힌트 (도전에서는 사과 1개)</li>
+      <li><svg aria-hidden="true"><use href="#i-erase"/></svg>보드 비우기 (고슴도치는 남겨요)</li>
+      <li><svg aria-hidden="true"><use href="#i-restart"/></svg>다시 시작 (연습)</li>
+      <li><svg aria-hidden="true"><use href="#i-flag"/></svg>도전 끝내기</li>
+    </ul>
+    <p class="note">도전 모드에서는 사과 5개가 다음 판으로 그대로 이어지고, 퍼즐은 도전할 때마다 새로 만들어져요. 모든 판은 답이 하나뿐이에요. 연습 모드는 판마다 사과가 다시 차고 기록은 남지 않아요.</p>
+    <div class="row"><button class="btn primary" id="rulesClose" type="button">알겠어요</button></div>
+  </div>
 </div>
 <div class="modal" id="quitModal" role="dialog" aria-modal="true" aria-labelledby="quitTitle" aria-describedby="quitBody" hidden>
   <div class="card">
@@ -838,11 +905,14 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const playing = S.phase === 'play';
     $('undoBtn').disabled = !S.history.length || !playing;
     $('hintBtn').disabled = !playing || (run && S.run.apples <= 1);
-    // Long labels on wide screens, short ones on phones (see .tLong / .tShort).
-    $('hintBtn').innerHTML = run ? '<span class="tLong">힌트 (사과 1개)</span><span class="tShort">힌트 −🍎</span>' : '힌트';
-    $('hintBtn').setAttribute('aria-label', run ? '힌트 (사과 1개)' : '힌트');
-    $('restartBtn').innerHTML = run ? '<span class="tLong">보드 비우기</span><span class="tShort">비우기</span>' : '다시 시작';
-    $('restartBtn').setAttribute('aria-label', run ? '보드 비우기' : '다시 시작');
+    // Icon buttons: the label lives in aria-label/title; in a challenge the hint shows that it costs an apple.
+    const iconBtn = (id, icon, label, extra = '') => {
+      const b = $(id), html = `<svg aria-hidden="true"><use href="#${icon}"/></svg>${extra}`;
+      if (b.dataset.html !== html) { b.innerHTML = html; b.dataset.html = html; }
+      b.setAttribute('aria-label', label); b.title = label;
+    };
+    iconBtn('hintBtn', 'i-hint', run ? '힌트 (사과 1개 사용)' : '힌트', run ? '<span class="badge" aria-hidden="true">−🍎</span>' : '');
+    iconBtn('restartBtn', run ? 'i-erase' : 'i-restart', run ? '보드 비우기 (고슴도치는 남겨요)' : '다시 시작');
     $('restartBtn').disabled = run ? !playing : false;
     $('quitBtn').hidden = !run;
     $('quitBtn').disabled = !runActive() || !runStarted();
@@ -1603,6 +1673,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
     else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
   });
+  if (!nickname) setProfile(autoNick(), AVATARS[Math.floor(Math.random() * AVATARS.length)]);
   renderProfileBtn();
 
   // ----- table -----
@@ -1738,7 +1809,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 
   // ---------- fit the board to short screens ----------
   // The board shrinks (never below BOARD_MIN px) so that it and the action buttons fit in the viewport height.
-  const BOARD_MIN = 260;
+  const BOARD_MIN = 250;
   function fitBoard() {
     const wrap = document.querySelector('.wrap'), actions = document.querySelector('.actions');
     const wrapW = wrap.clientWidth;
@@ -1757,6 +1828,27 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   }
   document.fonts?.ready?.then(fitBoard);
 
+  // ---------- rules window ----------
+  const rulesModal = $('rulesModal');
+  let rulesOpener = null;
+  function openRules() {
+    rulesOpener = document.activeElement;
+    rulesModal.hidden = false;
+    rulesModal.querySelector('.rulesCard').scrollTop = 0;
+    $('rulesClose').focus({ preventScroll: true });
+  }
+  function closeRules() {
+    if (rulesModal.hidden) return;
+    rulesModal.hidden = true;
+    rulesOpener?.focus?.({ preventScroll: true });
+  }
+  $('rulesOpen').onclick = openRules;
+  $('rulesClose').onclick = closeRules;
+  rulesModal.addEventListener('click', e => { if (e.target === rulesModal) closeRules(); });
+  rulesModal.addEventListener('keydown', e => {
+    if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); if (e.key === 'Escape') closeRules(); }
+  });
+
   // ---------- boot ----------
   function start() {
     const saved = store.get('hedgedoku.run', null);
@@ -1769,6 +1861,8 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   }
   start();
   fitBoard();
+  // First visit: show the rules once.
+  if (!store.get('hedgedoku.seenRules', false)) { store.set('hedgedoku.seenRules', true); openRules(); }
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
