@@ -20,8 +20,9 @@
    - 이름은 자유 (예: `hedgedoku`), 지역은 **Northeast Asia (Seoul)** 추천
    - Database password는 아무 값이나 정하면 돼요 (이 게임에서는 쓰지 않음)
 2. 프로젝트가 준비되면 왼쪽 메뉴 **SQL Editor** → **New query**
-3. `supabase/setup.sql` 내용을 전부 붙여 넣고 **Run**
+3. `supabase/setup.sql` 내용을 전부 붙여 넣고, `<GitHub아이디>` 부분을 내 GitHub Pages 주소로 바꾼 뒤 **Run** (그 주소의 게임에서만 기록이 저장돼요)
    - 마지막에 "Success. No rows returned"가 나오면 끝이에요.
+   - 예전에 setup.sql을 실행한 프로젝트라면 `supabase/` 폴더의 `fix-security-definer-view.sql`, `fix-security-definer-functions.sql`, `profile-avatar.sql`, `origin-check.sql`(주소 바꾸기)을 차례로 실행해 최신 구조로 맞춰요.
 4. 왼쪽 메뉴 **Project Settings → API** (또는 **Data API**)에서 두 값을 복사해요.
    - **Project URL** (예: `https://abcdefghijklmnop.supabase.co`)
    - **anon / public** 키 (긴 `eyJ...` 문자열, 또는 새 프로젝트라면 `sb_publishable_...`로 시작하는 키)
@@ -66,7 +67,8 @@ window.HEDGEDOKU_CONFIG = {
 ## 리더보드 동작 방식
 
 - 처음 접속한 브라우저마다 임의의 플레이어 ID와 비밀값이 만들어져요. 기록은 이 ID로 묶여요.
-- 닉네임은 기록을 처음 올릴 때 정하고, 리더보드 위의 "내 닉네임"에서 바꿀 수 있어요.
+- 위쪽 **내 프로필** 버튼에서 이모지(12가지 중 하나)와 닉네임을 정하고 바꿀 수 있어요.
+  프로필 없이 첫 기록을 올리면 임시 닉네임(예: 고슴도치1234)과 임의의 이모지로 등록돼요.
 - 기록은 난이도마다 개인 최고 기록 하나만 남아요 (레벨 수가 많을수록, 같으면 누적 시간이 짧을수록 위).
 - 브라우저 데이터를 지우거나 다른 기기에서 하면 새 플레이어로 인식돼요.
 - 점수는 플레이어 브라우저에서 계산해서 올리는 방식이라, 마음먹고 조작하는 사람을 완전히 막을 수는 없어요.
