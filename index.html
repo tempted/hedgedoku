@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>고슴도쿠</title>
-<meta name="description" content="색깔 덤불마다 고슴도치를 한 마리씩, 서로 닿지 않게 배치하는 논리 퍼즐. 사과 5개로 몇 레벨까지 갈 수 있을까요?">
+<meta name="description" content="색깔 덤불마다 고슴도치를 한 마리씩, 서로 닿지 않게 배치하는 논리 퍼즐. 주어진 사과로 몇 레벨까지 갈 수 있을까요?">
 <meta name="theme-color" content="#8a5a2b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -103,12 +103,12 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line
 .seg button:disabled { opacity: .45; cursor: default; }
 .seg.mode { flex: none; flex-wrap: nowrap; }
 .seg.mode button { font-family: var(--font-display); font-size: 1rem; padding: 4px 16px; }
-/* The difficulty bar spans the full width like the rows around it, with four equal buttons. */
-#diffSeg { flex-basis: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
+/* The difficulty bar spans the full width like the rows around it, with three equal buttons. */
+#diffSeg { flex-basis: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
 #diffSeg button { text-align: center; white-space: nowrap; }
-/* Narrow screens: the four difficulties sit as a 2 × 2 grid instead of wrapping 3 + 1. */
+/* Narrow screens: the three difficulties stay on one row as rounded buttons. */
 @media (max-width: 480px) {
-  #diffSeg { display: grid; grid-template-columns: 1fr 1fr; border-radius: 16px; flex-basis: 100%; }
+  #diffSeg { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 16px; flex-basis: 100%; }
   #diffSeg button { border-radius: 12px; text-align: center; padding: 6px 8px; }
 }
 /* The note's line is always reserved, so showing it after the first move doesn't push the board down. */
@@ -509,7 +509,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
     </div>
     <div class="lbResult" id="lbResult" hidden></div>
     <div class="seg" id="lbSeg" role="group" aria-label="리더보드 난이도"></div>
-    <p class="lbNote">사과 5개로 몇 레벨까지 가는지 겨뤄요. 클리어한 레벨이 많을수록, 같으면 누적 시간이 짧을수록 위에 올라가요. 난이도마다 각자 최고 기록 하나만 남아요.</p>
+    <p class="lbNote">주어진 사과(쉬움 3개 · 보통 4개 · 어려움 5개)로 몇 레벨까지 가는지 겨뤄요. 클리어한 레벨이 많을수록, 같으면 누적 시간이 짧을수록 위에 올라가요. 난이도마다 각자 최고 기록 하나만 남아요.</p>
     <div class="lbTableWrap" id="lbBody"><p class="empty">리더보드를 불러오는 중…</p></div>
     <p class="lbStatus" id="lbStatus"></p>
   </div>
@@ -551,7 +551,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
       <li><svg aria-hidden="true"><use href="#i-restart"/></svg>다시 시작 (연습)</li>
       <li><svg aria-hidden="true"><use href="#i-flag"/></svg>도전 끝내기</li>
     </ul>
-    <p class="note">도전 모드에서는 사과 5개가 다음 판으로 그대로 이어지고, 퍼즐은 도전할 때마다 새로 만들어져요. 모든 판은 답이 하나뿐이에요. 연습 모드는 판마다 사과가 다시 차고 기록은 남지 않아요.</p>
+    <p class="note">도전 모드에서는 사과(쉬움 3개 · 보통 4개 · 어려움 5개)가 다음 판으로 그대로 이어지고, 퍼즐은 도전할 때마다 새로 만들어져요. 모든 판은 답이 하나뿐이에요. 연습 모드는 판마다 사과가 다시 차고 기록은 남지 않아요.</p>
     <div class="row"><button class="btn primary" id="rulesClose" type="button">알겠어요</button></div>
   </div>
 </div>
@@ -582,16 +582,18 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
   })();
 
   // ---------- puzzle generation ----------
+  // ids follow the board size (normal = 7×7, hard = 9×9, expert = 11×11) so leaderboard records stay with their size;
+  // the old 5×5 'easy' level was retired.
   const DIFFS = [
-    { id: 'easy', label: '쉬움', n: 5 },
-    { id: 'normal', label: '보통', n: 7 },
-    { id: 'hard', label: '어려움', n: 9 },
-    { id: 'expert', label: '매우 어려움', n: 11 },
+    { id: 'normal', label: '쉬움', n: 7, apples: 3 },
+    { id: 'hard', label: '보통', n: 9, apples: 4 },
+    { id: 'expert', label: '어려움', n: 11, apples: 5 },
   ];
   const DIFF_IDS = DIFFS.map(d => d.id);
   const sizeOf = id => DIFFS.find(d => d.id === id).n;
   const MAX_LEVEL = 999;
-  const APPLES = 5;
+  // Apples per run (and per practice board) depend on the difficulty.
+  const applesOf = id => DIFFS.find(d => d.id === id).apples;
 
   function hashStr(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
   function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -774,11 +776,11 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
   // phase: 'play' | 'ready' (run level waiting to start) | 'between' (run level cleared) | 'over' (run ended)
   //        | 'won' / 'lost' (practice)
   const S = {
-    mode: 'run', diff: 'easy', P: null, cells: [], history: [], phase: 'play',
-    practice: { level: 1, hearts: APPLES, hints: 0 },
+    mode: 'run', diff: 'normal', P: null, cells: [], history: [], phase: 'play',
+    practice: { level: 1, hearts: applesOf('normal'), hints: 0 },
     run: null,
     clock: { acc: 0, since: 0, running: false },
-    lbDiff: 'easy',
+    lbDiff: 'normal',
     lastResult: null,
   };
   const $ = id => document.getElementById(id);
@@ -812,7 +814,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
 
   function loadPractice(diff, level) {
     S.mode = 'practice'; S.diff = diff;
-    S.practice = { level, hearts: APPLES, hints: 0 };
+    S.practice = { level, hearts: applesOf(diff), hints: 0 };
     setBoard(puzzleFor(`${diff}:${level}`, sizeOf(diff)));
     clockReset(); clockStart();
     S.phase = 'play';
@@ -822,7 +824,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
 
   function newRun(diff) {
     S.mode = 'run'; S.diff = diff; S.lbDiff = diff;
-    S.run = { diff, seed: Math.floor(Math.random() * 2 ** 31), level: 1, cleared: 0, totalMs: 0, apples: APPLES, hints: 0, finished: false };
+    S.run = { diff, seed: Math.floor(Math.random() * 2 ** 31), level: 1, cleared: 0, totalMs: 0, apples: applesOf(diff), hints: 0, finished: false };
     loadRunLevel();
     S.phase = 'ready';
     saveRun(); render(); showReady(false);
@@ -890,7 +892,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
       }
     });
     const h = lives(), dropped = prevLives !== null && h < prevLives;
-    $('lives').innerHTML = Array.from({ length: APPLES }, (_, k) =>
+    $('lives').innerHTML = Array.from({ length: applesOf(S.diff) }, (_, k) =>
       `<svg class="${k < h ? '' : 'lost'}${dropped && k >= h && k < prevLives ? ' drop' : ''}"><use href="#apple"/></svg>`).join('')
       + (h <= 0 ? '<span class="out">사과 없음</span>' : '');
     $('lives').setAttribute('aria-label', `남은 사과 ${h}개`);
@@ -962,7 +964,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
     };
   }
   const FAIL_DELAY = 1400;
-  const emptyApples = `<div class="apples" aria-hidden="true">${'<svg><use href="#apple"/></svg>'.repeat(APPLES)}</div>`;
+  const emptyApples = () => `<div class="apples" aria-hidden="true">${'<svg><use href="#apple"/></svg>'.repeat(applesOf(S.diff))}</div>`;
 
   function showReady(resume) {
     const r = S.run, d = DIFFS.find(x => x.id === r.diff);
@@ -970,7 +972,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
       ? `<h2>이어서 도전하기</h2><p>${d.label} ${d.n}×${d.n} · 레벨 ${r.level} · 사과 ${r.apples}개</p>
          <div class="row"><button class="btn primary" id="ovGo">계속하기</button></div>`
       : `<svg aria-hidden="true"><use href="#hog"/></svg><h2>${d.label} 도전</h2>
-         <p>사과 ${APPLES}개로 몇 레벨까지 갈 수 있을까요? 시작하면 시간이 흘러요.</p>
+         <p>사과 ${applesOf(S.diff)}개로 몇 레벨까지 갈 수 있을까요? 시작하면 시간이 흘러요.</p>
          <div class="row"><button class="btn primary" id="ovGo">시작</button></div>`);
     $('ovGo').onclick = beginLevel; $('ovGo').focus({ preventScroll: true });
   }
@@ -987,7 +989,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
 
   function showOver() {
     const r = S.run, d = DIFFS.find(x => x.id === r.diff), res = S.lastResult, failed = r.endReason !== 'quit';
-    showOverlay(`${failed ? emptyApples : ''}
+    showOverlay(`${failed ? emptyApples() : ''}
       <h2 class="${failed ? 'fail' : ''}">${failed ? `레벨 ${r.level}에서 사과를 다 썼어요` : '도전을 끝냈어요'}</h2>
       <p>${d.label} ${d.n}×${d.n} 도전 결과</p>
       <p class="big">${r.cleared}레벨 클리어 · ${fmt(r.totalMs)}</p>
@@ -1004,7 +1006,7 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
       ? `<svg aria-hidden="true"><use href="#hog"/></svg><h2>모두 자리를 찾았어요!</h2>
          <p>${fmt(clockMs())} · 남은 사과 ${S.practice.hearts}개${S.practice.hints ? ` · 힌트 ${S.practice.hints}번` : ''}</p>
          <div class="row"><button class="btn primary" id="ovGo">${S.practice.level < MAX_LEVEL ? '다음 레벨' : '처음 레벨로'}</button></div>`
-      : `${emptyApples}<h2 class="fail">사과를 다 썼어요</h2><p>흐린 고슴도치가 정답 자리예요.</p>
+      : `${emptyApples()}<h2 class="fail">사과를 다 썼어요</h2><p>흐린 고슴도치가 정답 자리예요.</p>
          <div class="row"><button class="btn primary" id="ovGo">다시 도전</button><button class="btn" id="ovPeek">정답 보기</button></div>`);
     $('ovGo').onclick = () => loadPractice(S.diff, won ? (S.practice.level < MAX_LEVEL ? S.practice.level + 1 : 1) : S.practice.level);
     if (!won) wirePeek();
@@ -1912,9 +1914,10 @@ html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
     const saved = store.get('hedgedoku.run', null);
     if (saved?.run && DIFF_IDS.includes(saved.run.diff) && Number.isFinite(saved.run.seed)) {
       S.run = { ...saved.run, cells: saved.cells, levelMs: saved.levelMs || 0 };
+      S.run.apples = Math.min(S.run.apples, applesOf(S.run.diff)); // a run saved before the per-difficulty apple counts
       S.diff = S.run.diff; S.lbDiff = S.run.diff;
       enterRunMode();
-    } else newRun('easy');
+    } else newRun('normal');
     renderLB();
   }
   start();
