@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install. The page is network-first; other same-origin files
 // and Google Fonts are served stale-while-revalidate. Leaderboard (Supabase) requests always go to the network.
 // Bump VERSION whenever you deploy changed files so returning players get them.
-const VERSION = 'hedgedoku-v18';
+const VERSION = 'hedgedoku-v19';
 const SHELL = [
   './',
   './index.html',
