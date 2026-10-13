@@ -381,6 +381,9 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   .hpName { font-size: .66rem; }
 }
 @media (prefers-reduced-motion: reduce) { .hpAvatar { transition: none; } }
+/* A game screen, not a document: no text selection, long-press callout or tap flash (inputs stay editable). */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 /* No double-tap zoom anywhere (pinch zoom still works): the result card can appear right under the second tap. */
 html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
 /* iOS zooms into inputs whose text is under 16px when they get focus. */
