@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install. The page is network-first; other same-origin files
 // and Google Fonts are served stale-while-revalidate. Leaderboard (Supabase) requests always go to the network.
 // Bump VERSION whenever you deploy changed files so returning players get them.
-const VERSION = 'hedgedoku-v12';
+const VERSION = 'hedgedoku-v18';
 const SHELL = [
   './',
   './index.html',
@@ -37,7 +37,8 @@ self.addEventListener('fetch', event => {
   const isPage = req.mode === 'navigate';
   if (isPage || (url.origin === self.location.origin && url.pathname.endsWith('/config.js'))) {
     const key = isPage ? './index.html' : './config.js';
-    event.respondWith(caches.open(VERSION).then(cache => fetch(req)
+    // cache: 'no-cache' revalidates with the server instead of trusting the browser's HTTP cache.
+    event.respondWith(caches.open(VERSION).then(cache => fetch(req, { cache: 'no-cache' })
       .then(res => { if (res.ok) cache.put(key, res.clone()); return res; })
       .catch(async () => (await cache.match(key)) || Response.error())));
     return;

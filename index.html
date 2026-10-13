@@ -103,6 +103,9 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; line
 .seg button:disabled { opacity: .45; cursor: default; }
 .seg.mode { flex: none; flex-wrap: nowrap; }
 .seg.mode button { font-family: var(--font-display); font-size: 1rem; padding: 4px 16px; }
+/* The difficulty bar spans the full width like the rows around it, with four equal buttons. */
+#diffSeg { flex-basis: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
+#diffSeg button { text-align: center; white-space: nowrap; }
 /* Narrow screens: the four difficulties sit as a 2 × 2 grid instead of wrapping 3 + 1. */
 @media (max-width: 480px) {
   #diffSeg { display: grid; grid-template-columns: 1fr 1fr; border-radius: 16px; flex-basis: 100%; }
@@ -128,6 +131,7 @@ html { scrollbar-gutter: stable; }
 .quill {
   position: absolute; left: 0; top: -3px; width: 18px; height: 6px; transform-origin: 0 50%;
   background: linear-gradient(to right, #a8743f, #4a2f16); clip-path: polygon(0 25%, 100% 50%, 0 75%);
+  will-change: transform, opacity;
 }
 .cell.stab .mark { animation: stab .24s cubic-bezier(.2, 1.6, .4, 1) backwards; animation-delay: var(--d, 0ms); }
 .cell.stab::before { animation: shadeIn .2s ease-out backwards; animation-delay: var(--d, 0ms); }
@@ -169,10 +173,12 @@ html { scrollbar-gutter: stable; }
   display: grid; place-items: center; cursor: pointer; font: inherit; color: var(--x);
   -webkit-tap-highlight-color: transparent;
 }
-.cell.bt { border-top: 2.5px solid var(--line); }
-.cell.bb { border-bottom: 2.5px solid var(--line); }
-.cell.bl { border-left: 2.5px solid var(--line); }
-.cell.br { border-right: 2.5px solid var(--line); }
+.cell.bt { border-top: var(--rb, 2.5px) solid var(--line); }
+.cell.bb { border-bottom: var(--rb, 2.5px) solid var(--line); }
+.cell.bl { border-left: var(--rb, 2.5px) solid var(--line); }
+.cell.br { border-right: var(--rb, 2.5px) solid var(--line); }
+/* Both cells on a region boundary draw half of the line, so on phones each half is thin; big boards thinner still. */
+@media (max-width: 480px) { .board { --rb: 1.5px; } .board.dense { --rb: 1.1px; } }
 .cell:focus-visible { outline: 3px solid var(--ring); outline-offset: -4px; z-index: 1; }
 .cell .mark { position: relative; font-size: clamp(14px, 4.2vw, 24px); line-height: 1; opacity: .85; pointer-events: none; }
 .cell.x::before { content: ""; position: absolute; inset: 0; background: var(--shade); pointer-events: none; }
@@ -375,6 +381,10 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   .hpName { font-size: .66rem; }
 }
 @media (prefers-reduced-motion: reduce) { .hpAvatar { transition: none; } }
+/* No double-tap zoom anywhere (pinch zoom still works): the result card can appear right under the second tap. */
+html, body, .overlay, .modal, .card, .panel { touch-action: manipulation; }
+/* iOS zooms into inputs whose text is under 16px when they get focus. */
+@media (max-width: 480px) { input:not([type=checkbox]) { font-size: 16px; } }
 /* Small phones (e.g. iPhone SE): tighter spacing so the board and its buttons fit on one screen. */
 .boardwrap { width: 100%; margin-inline: auto; max-width: 100%; }
 @media (max-width: 480px) {
@@ -849,6 +859,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const { N, reg, colors } = S.P;
     board.style.gridTemplateColumns = `repeat(${N}, minmax(0, 1fr))`;
     board.style.gridTemplateRows = `repeat(${N}, minmax(0, 1fr))`;
+    board.classList.toggle('dense', N >= 9);
     board.innerHTML = '';
     for (let i = 0; i < N * N; i++) {
       const r = Math.floor(i / N), c = i % N, g = reg[i];
@@ -872,8 +883,8 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
         b.dataset.v = v;
         b.classList.toggle('x', v === 1);
         b.innerHTML = v === 2 ? '<svg aria-hidden="true"><use href="#hog"/></svg>' : v === 1 ? '<span class="mark">×</span>' : '';
+        b.setAttribute('aria-label', `${Math.floor(i / N) + 1}행 ${i % N + 1}열, ${v === 2 ? '고슴도치' : v === 1 ? '× 표시' : '빈 칸'}`);
       }
-      b.setAttribute('aria-label', `${Math.floor(i / N) + 1}행 ${i % N + 1}열, ${v === 2 ? '고슴도치' : v === 1 ? '× 표시' : '빈 칸'}`);
     });
     const h = lives(), dropped = prevLives !== null && h < prevLives;
     $('lives').innerHTML = Array.from({ length: APPLES }, (_, k) =>
@@ -1029,13 +1040,21 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const N = S.P.N, r0 = Math.floor(i / N), c0 = i % N;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     // × marks on the spike lines appear as the spike reaches them; same-region marks land last.
-    for (const j of newly) {
+    // Restart all mark animations with one reflow (a reflow per cell made phones stutter).
+    let longest = 0;
+    const marks = newly.map(j => {
       const dr = Math.floor(j / N) - r0, dc = j % N - c0, b = board.children[j];
       const onLine = dr === 0 || dc === 0 || (Math.abs(dr) <= 1 && Math.abs(dc) <= 1);
       const dist = onLine ? Math.max(Math.abs(dr), Math.abs(dc)) : Math.ceil(N / 2) + 1;
+      longest = Math.max(longest, dist);
       b.style.setProperty('--d', reduce ? '0ms' : `${dist * QUILL_MS_PER_CELL}ms`);
-      b.classList.remove('stab'); void b.offsetWidth; b.classList.add('stab');
-      setTimeout(() => b.classList.remove('stab'), dist * QUILL_MS_PER_CELL + 600);
+      b.classList.remove('stab');
+      return b;
+    });
+    if (marks.length) {
+      void board.offsetWidth;
+      marks.forEach(b => b.classList.add('stab'));
+      setTimeout(() => marks.forEach(b => b.classList.remove('stab')), longest * QUILL_MS_PER_CELL + 600);
     }
     if (reduce) return;
     const fx = $('fx'), wrap = boardwrap.getBoundingClientRect(), cr = board.children[i].getBoundingClientRect();
@@ -1178,16 +1197,24 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     const b = e.target.closest('.cell'); if (!b || !playing()) return;
     const i = +b.dataset.i;
     // The first cell decides what the drag does: from an empty cell it paints ×, from a × it erases ×.
-    press = { i, last: i, moved: false, drag: S.cells[i] === 0 ? 'mark' : S.cells[i] === 1 ? 'erase' : null };
-    board.setPointerCapture(e.pointerId);
+    press = { i, last: i, moved: false, drag: S.cells[i] === 0 ? 'mark' : S.cells[i] === 1 ? 'erase' : null,
+      x: e.clientX, y: e.clientY, armed: false };
+    try { board.setPointerCapture(e.pointerId); } catch {}
   });
+  // How far the pointer must travel before a press counts as a drag (a slipping tap must not erase ×).
+  const dragThreshold = () => Math.max(8, board.children[0].getBoundingClientRect().width * 0.35);
   board.addEventListener('pointermove', e => {
     if (!press) return;
     const N = S.P.N, [from, to] = press.drag === 'mark' ? [0, 1] : [1, 0];
     let changed = false;
     // A fast drag can jump several cells between events: use every coalesced sample
     // and fill in the cells along the straight line between consecutive samples.
-    for (const ev of e.getCoalescedEvents?.() ?? [e]) {
+    const samples = e.getCoalescedEvents?.() || [];
+    for (const ev of samples.length ? samples : [e]) {
+      if (!press.armed) {
+        if (Math.hypot(ev.clientX - press.x, ev.clientY - press.y) < dragThreshold()) continue;
+        press.armed = true;
+      }
       const j = cellFromPoint(ev.clientX, ev.clientY);
       if (j < 0 || j === press.last) continue;
       if (!press.drag) { press.moved = true; press.last = j; continue; }
@@ -1202,13 +1229,19 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     }
     if (changed) render();
   });
+  let lastPointerUp = 0;
   board.addEventListener('pointerup', () => {
+    lastPointerUp = performance.now();
     if (press && !press.moved) tap(press.i);
     else if (press) { lastTap = { i: -1, t: 0 }; saveIfRun(); }
     press = null;
   });
   board.addEventListener('pointercancel', () => { press = null; });
-  board.addEventListener('click', e => { if (e.detail === 0) { const b = e.target.closest('.cell'); if (b) tap(+b.dataset.i); } });
+  // Keyboard activation (Enter/Space) only: some touch browsers send a detail-0 click right after a tap.
+  board.addEventListener('click', e => {
+    if (e.detail !== 0 || performance.now() - lastPointerUp < 700) return;
+    const b = e.target.closest('.cell'); if (b) tap(+b.dataset.i);
+  });
   board.addEventListener('keydown', e => {
     const b = e.target.closest('.cell'); if (!b) return;
     const N = S.P.N, i = +b.dataset.i;
@@ -1312,6 +1345,10 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   let nickname = store.get('hedgedoku.nick', '');
   // Profile emoji: one of a fixed set (the server accepts only these).
   const AVATARS = ['🦔', '🐰', '🐻', '🐼', '🦊', '🐸', '🐧', '🐹', '🐨', '🦉', '🐢', '🐙'];
+  // Default nicknames follow the emoji: 🐨 → "코알라4821".
+  const ANIMAL_NAMES = { '🦔': '고슴도치', '🐰': '토끼', '🐻': '곰돌이', '🐼': '판다', '🦊': '여우', '🐸': '개구리',
+    '🐧': '펭귄', '🐹': '햄스터', '🐨': '코알라', '🦉': '부엉이', '🐢': '거북이', '🐙': '문어' };
+  const randomAvatar = () => AVATARS[Math.floor(Math.random() * AVATARS.length)];
   const validAvatar = a => AVATARS.includes(a) ? a : '';
   let avatar = validAvatar(store.get('hedgedoku.avatar', ''));
   const cleanNick = s => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, NICK_MAX);
@@ -1447,7 +1484,8 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     if (!localBoard[r.diff].some(x => x.id === rec.id)) localBoard[r.diff].push(rec);
     store.set(LOCAL_KEY, localBoard);
   }
-  const autoNick = () => `고슴도치${Math.floor(1000 + Math.random() * 9000)}`;
+  // Only used when a profile is first created: the default name matches the default emoji.
+  const autoNick = av => `${ANIMAL_NAMES[av] || '고슴도치'}${Math.floor(1000 + Math.random() * 9000)}`;
 
   // Entries are the rows the table shows: {id, name, levels, timeMs, pos}, with null for the "⋯" gap.
   function entriesFor(diff) {
@@ -1482,7 +1520,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     S.lastResult = { ok: false, msg: '기록 저장 중…' }; renderResult();
     // No profile yet: register right away under a temporary one (it can be changed in 내 프로필).
     let autoNamed = false;
-    if (!nickname) { setProfile(autoNick(), avatar || AVATARS[Math.floor(Math.random() * AVATARS.length)]); autoNamed = true; }
+    if (!nickname) { const av = avatar || randomAvatar(); setProfile(autoNick(av), av); autoNamed = true; }
     await syncProfile();
     let before = null;
     {
@@ -1673,7 +1711,7 @@ table.lbt { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
     if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
     else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
   });
-  if (!nickname) setProfile(autoNick(), AVATARS[Math.floor(Math.random() * AVATARS.length)]);
+  if (!nickname) { const av = randomAvatar(); setProfile(autoNick(av), av); }
   renderProfileBtn();
 
   // ----- table -----
